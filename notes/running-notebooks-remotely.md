@@ -62,7 +62,15 @@ Secondly we will prefix the command with `nice`. `nice` is a shell command which
 
 ```
 nice -n 19 jupyter notebook --no-browser
+(echo '<my_password>' | nohup longjob -28day -c 'nice jupyter notebook --no-browser --port=<12345>')&
 ```
+`You need to include my_password as the kinit server will request for it before nohup is excuted.`
+
+Good to also note that if `nohup.out` should not overflow, issue:
+```
+set +0 history
+```
+to prevent too many things from being writtent to the file.
 
 Once the notebook server starts running you should take note of the port it is being served on as indicated in the `The Jupyter Notebook is running at: https://localhost:[port]/` message.
 
@@ -70,7 +78,7 @@ Once the notebook server starts running you should take note of the port it is b
 
 Now that the notebook server is running on the remote server you need to connect to it on your local machine. We will do this by forwarding the port the notebook server is being run on over SSH to you local machine. As all external connections from outside the `inf.ed.ac.uk` domain have to go via the SSH gateway server we need to go via this gateway server.
 
-In a **new terminal window / tab** run the command below with the `[...]` placeholders substituted with the appropriate values to securely forward the specified port on the remote server to your local machine and bind it to a local port. You should choose `[remote-port]` to be the port the notebook server is running on on the remote server, `[local-port]` to be a currently unused port on your local machine and `[remote-server-name]` to be the host name of the remote server the notebook server is being run on.
+In a **new terminal window on your remote computer/ tab** run the command below with the `[...]` placeholders substituted with the appropriate values to securely forward the specified port on the remote server to your local machine and bind it to a local port. You should choose `[remote-port]` to be the port the notebook server is running on on the remote server, `[local-port]` to be a currently unused port on your local machine and `[remote-server-name]` to be the host name of the remote server the notebook server is being run on.
 
 ```
 ssh -N -o ProxyCommand="ssh -q [dice-username]@student.ssh.inf.ed.ac.uk nc [remote-server-name] 22" \
