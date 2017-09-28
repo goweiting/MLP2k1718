@@ -196,27 +196,31 @@ class MetOfficeDataProvider(DataProvider):
             'Data file does not exist at expected path: ' + data_path
         )
         # load raw data from text file; skip first three rows that belongs to text
-        data = np.loadtxt("../data/HadSSP_daily_qc.txt", skiprows=3)
+        data = np.loadtxt(data_path, skiprows=3)
         data = data[:,2:] # remove the firs two columns
         # filter out all missing datapoints and flatten to a vector
         (num_rows, num_cols) = data.shape
+        weatherData = data[data != -99.99]
         data.reshape(num_rows * num_cols, 1)
-        weatherData = data[data!=-99.99]
-
+        
         # normalise data to zero mean, unit standard deviation
         sd = np.std(weatherData)
         miu = np.mean(weatherData)
         normalised_weatherData = (weatherData - miu) / sd
 
         # convert from flat sequence to windowed data
-        # ...
-        # inputs are first (window_size - 1) entries in windows
-        # inputs = ...
+        num_dataPoints = len(normalised_weatherData)
+        inputs = np.reshape(a=normalised_weatherData,newshape=(-1,window_size)) # wildcard for guessing the number of rows
         # targets are last entry in windows
-        # targets = ...
+        targets = inputs[:,window_size-1]
+        # inputs are first (window_size - 1) entries in windows
+        inputs = inputs[:,0:window_size-1]
+        if (len(inputs[-1,:]) != window_size-1):
+            inputs = inputs[0:-1,:]
+            targets=targets[0:-1]
         # initialise base class with inputs and targets arrays
-        # super(MetOfficeDataProvider, self).__init__(
-        #     inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+        super(MetOfficeDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
     def __next__(self):
             return self.next()
