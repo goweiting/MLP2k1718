@@ -133,11 +133,11 @@ class MNISTDataProvider(DataProvider):
         super(MNISTDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
-    # def next(self):
-    #    """Returns next data batch or raises `StopIteration` if at end."""
-    #    inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
-    #    return inputs_batch, self.to_one_of_k(targets_batch)
-    #
+    def next(self):
+       """Returns next data batch or raises `StopIteration` if at end."""
+       inputs_batch, targets_batch = super(MNISTDataProvider, self).next()
+       return inputs_batch, self.to_one_of_k(targets_batch)
+
     def __next__(self):
         return self.next()
 
@@ -156,7 +156,15 @@ class MNISTDataProvider(DataProvider):
             to zero except for the column corresponding to the correct class
             which is equal to one.
         """
-        raise NotImplementedError()
+        num_data = len(int_targets)
+        num_classes = max(int_targets) + 1
+
+        # create an array of size (num_data, num_classes):
+        encoded = np.zeros((num_data, num_classes))
+
+        for i, num in enumerate(int_targets):
+            encoded[i,num] = 1
+        return encoded
 
 
 class MetOfficeDataProvider(DataProvider):
@@ -187,20 +195,35 @@ class MetOfficeDataProvider(DataProvider):
         assert os.path.isfile(data_path), (
             'Data file does not exist at expected path: ' + data_path
         )
-        # load raw data from text file
-        # ...
+        # load raw data from text file; skip first three rows that belongs to text
+        data = np.loadtxt(data_path, skiprows=3)
+        data = data[:,2:] # remove the firs two columns
         # filter out all missing datapoints and flatten to a vector
-        # ...
+        (num_rows, num_cols) = data.shape
+        weatherData = data[data != -99.99]
+        data.reshape(num_rows * num_cols, 1)
+        
         # normalise data to zero mean, unit standard deviation
-        # ...
+        sd = np.std(weatherData)
+        miu = np.mean(weatherData)
+        normalised_weatherData = (weatherData - miu) / sd
+
         # convert from flat sequence to windowed data
-        # ...
-        # inputs are first (window_size - 1) entries in windows
-        # inputs = ...
+        num_dataPoints = len(normalised_weatherData)
+        num_rows = num_dataPoints - window_size + 1
+        inputs = np.zeros((num_rows, window_size));
+        for i in range(num_rows):
+            inputs[i,:] = normalised_weatherData[i:i+window_size]
+        
         # targets are last entry in windows
-        # targets = ...
+        targets = inputs[:,window_size-1]
+        
+        # inputs are first (window_size - 1) entries in windows
+        inputs = inputs[:,0:window_size-1]
+
         # initialise base class with inputs and targets arrays
-        # super(MetOfficeDataProvider, self).__init__(
-        #     inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+        super(MetOfficeDataProvider, self).__init__(
+            inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
+
     def __next__(self):
             return self.next()
