@@ -210,14 +210,17 @@ class MetOfficeDataProvider(DataProvider):
 
         # convert from flat sequence to windowed data
         num_dataPoints = len(normalised_weatherData)
-        inputs = np.reshape(a=normalised_weatherData,newshape=(-1,window_size)) # wildcard for guessing the number of rows
+        num_rows = num_dataPoints - window_size + 1
+        inputs = np.zeros((num_rows, window_size));
+        for i in range(num_rows):
+            inputs[i,:] = normalised_weatherData[i:i+window_size]
+        
         # targets are last entry in windows
         targets = inputs[:,window_size-1]
+        
         # inputs are first (window_size - 1) entries in windows
         inputs = inputs[:,0:window_size-1]
-        if (len(inputs[-1,:]) != window_size-1):
-            inputs = inputs[0:-1,:]
-            targets=targets[0:-1]
+
         # initialise base class with inputs and targets arrays
         super(MetOfficeDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
