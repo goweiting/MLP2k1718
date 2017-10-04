@@ -13,32 +13,34 @@ import numpy as np
 
 
 class SumOfSquaredDiffsError(object):
-    """Sum of squared differences (squared Euclidean distance) error."""
+  """Sum of squared differences (squared Euclidean distance) error."""
 
-    def __call__(self, outputs, targets):
-        """Calculates error function given a batch of outputs and targets.
+  def __call__(self, outputs, targets):
+    """Calculates error function given a batch of outputs and targets.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
-        Returns:
-            Scalar error function value.
-        """
-        raise NotImplementedError()
+    Returns:
+        Scalar error function value.
+    """
+    (N, k) = outputs.shape
+    return (1 / N) * np.sum((1 / 2) * np.sum(np.power((outputs - targets), 2), 1))
 
-    def grad(self, outputs, targets):
-        """Calculates gradient of error function with respect to outputs.
+  def grad(self, outputs, targets):
+    """Calculates gradient of error function with respect to outputs.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
-        Returns:
-            Gradient of error function with respect to outputs. This should be
-            an array of shape (batch_size, output_dim).
-        """
-        raise NotImplementedError()
+    Returns:
+        Gradient of error function with respect to outputs. This should be
+        an array of shape (batch_size, output_dim).
+    """
+    (N, k) = outputs.shape
+    return (1 / N) * (outputs - targets)
 
-    def __repr__(self):
-        return 'SumOfSquaredDiffsError'
+  def __repr__(self):
+    return 'SumOfSquaredDiffsError'
