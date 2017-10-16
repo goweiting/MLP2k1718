@@ -199,6 +199,13 @@ class MNISTDataProvider(DataProvider):
         one_of_k_targets[range(int_targets.shape[0]), int_targets] = 1
         return one_of_k_targets
 
+        # create an array of size (num_data, num_classes):
+        encoded = np.zeros((num_data, num_classes))
+
+        for i, num in enumerate(int_targets):
+            encoded[i,num] = 1
+        return encoded
+
 
 class MetOfficeDataProvider(DataProvider):
     """South Scotland Met Office weather data provider."""
