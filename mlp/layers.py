@@ -19,6 +19,9 @@ import mlp.initialisers as init
 class Layer(object):
     """Abstract class defining the interface for a layer."""
 
+    def __init__(set):
+        pass
+
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
 
@@ -323,12 +326,16 @@ class ReluLayer(Layer):
 class LeakyReluLayer(Layer):
     """Layer implementing an element-wise leaky rectified linear transformation."""
 
-    def fprop(self, inputs, alpha=0.01):
+    def __init__(self, alpha=0.01):
+        self.alpha = alpha
+        super()
+
+    def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
 
         For inputs `x` and outputs `y` this corresponds to `y = x if x > 0, else alpha*x if x < 0 `.
         """
-        return np.where(inputs > 0, inputs, alpha * inputs)
+        return np.where(inputs > 0, inputs, self.alpha * inputs)
 
     def bprop(self, inputs, outputs, grads_wrt_outputs, alpha=0.01):
         """Back propagates gradients through a layer.
@@ -336,7 +343,7 @@ class LeakyReluLayer(Layer):
         Given gradients with respect to the outputs of the layer calculates the
         gradients with respect to the layer inputs.
         """
-        return np.where(outputs > 0, 1, alpha) * grads_wrt_outputs
+        return np.where(outputs > 0, 1, self.alpha) * grads_wrt_outputs
 
     def __repr__(self):
         return 'LeakyReluLayer'
@@ -345,20 +352,24 @@ class LeakyReluLayer(Layer):
 class ELULayer(Layer):
     """Layer implementing an ELU activation."""
 
-    def fprop(self, inputs, alpha=1):
+    def __init__(self, alpha=1):
+        self.alpha = alpha
+        super()
+
+    def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
 
         For inputs `x` and outputs `y` this corresponds to `alpha*(e^x - 1) if x < 0 else x`.
         """
-        return np.where(inputs <= 0, alpha * np.exp(inputs) - 1, inputs)
+        return np.where(inputs <= 0, self.alpha * np.exp(inputs) - 1, inputs)
 
-    def bprop(self, inputs, outputs, grads_wrt_outputs, alpha=1):
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
 
         Given gradients with respect to the outputs of the layer calculates the
         gradients with respect to the layer inputs.
         """
-        return np.where(outputs <= 0, alpha * np.exp(inputs), 1.) * grads_wrt_outputs
+        return np.where(outputs <= 0, outputs + self.alpha, 1.) * grads_wrt_outputs
 
     def __repr__(self):
         return 'ELULayer'
@@ -367,23 +378,29 @@ class ELULayer(Layer):
 class SELULayer(Layer):
     """Layer implementing a Self Normalizing ELU."""
 
-    # α01 ≈ 1.6733 and λ01 ≈ 1.0507
+    def __init__(self, a=1.6733, l=1.0507):
+        # α01 ≈ 1.6733 and λ01 ≈ 1.0507
+        self.a=np.float(a)
+        self.l=np.float(l)
+        super()
 
-    def fprop(self, inputs, l=1.0507, a=1.6733):
+    def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
 
-        For inputs `x` and outputs `y` this corresponds to `λ*alpha*(exp^(x)-1) if x <= 0 else x`.
+        For inputs `x` and outputs `y` this corresponds to `λα*(exp^(x)-1) if x <= 0 else x`.
         """
-        return np.where(inputs <= 0, a * (np.exp(inputs) - 1), inputs) * l
+        return np.where(inputs <= 0, self.a * self.l * (np.exp(inputs) - 1), inputs * self.l)
 
-    def bprop(self, inputs, outputs, grads_wrt_outputs, l=1.0507, a=1.6733):
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
 
         Given gradients with respect to the outputs of the layer calculates the
         gradients with respect to the layer inputs.
+
+        If output <= 0, grad = outputs + λα
         """
 
-        return np.where(outputs <= 0, a * l * np.exp(inputs), l) * grads_wrt_outputs
+        return np.where(outputs <= 0, outputs + self.a * self.l, self.l) * grads_wrt_outputs
 
     def __repr__(self):
         return 'SELULayer'
