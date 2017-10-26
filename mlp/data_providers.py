@@ -141,7 +141,7 @@ class MNISTDataProvider(DataProvider):
         """Create a new MNIST data provider object.
 
         Args:
-            which_set: One of 'train', 'valid' or 'eval'. Determines which
+            which_set: One of 'train', 'valid' or 'test'. Determines which
                 portion of the MNIST data this object should provide.
             batch_size (int): Number of data points to include in each batch.
             max_num_batches (int): Maximum number of batches to iterate over
@@ -153,8 +153,8 @@ class MNISTDataProvider(DataProvider):
             rng (RandomState): A seeded random number generator.
         """
         # check a valid which_set was provided
-        assert which_set in ['train', 'valid', 'eval'], (
-            'Expected which_set to be either train, valid or eval. '
+        assert which_set in ['train', 'valid', 'test'], (
+            'Expected which_set to be either train, valid or test. '
             'Got {0}'.format(which_set)
         )
         self.which_set = which_set
