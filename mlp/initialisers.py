@@ -65,9 +65,26 @@ class NormalInit(object):
         return self.rng.normal(loc=self.mean, scale=self.std, size=shape)
 
 class SELUInit(object):
-    """SELU Initializer."""
-    # write code that implements SELU initialization. Take inspiration from the other initializers in this file.
-    pass
+    """SELU Initializer.
+    Initialises an two-dimensional parameter array using fixed point at
+    zero mean and variance of 1/n
+    """
+    def __init__(self, gain=1., rng=None):
+        """Construct a normalised initilisation random initialiser object.
+        Args:
+            gain: Multiplicative factor to scale initialised weights by.
+                Recommended values is 1 for affine layers followed by
+                logistic sigmoid layers (or another affine layer).
+            rng (RandomState): Seeded random number generator.
+        """
+        self.gain = gain
+        if rng is None:
+            rng = np.random.RandomState(DEFAULT_SEED)
+        self.rng = rng
+
+    def __call__(self, shape):
+        std = self.gain*(1. / (shape[0] + shape[1]))**0.5
+        return self.rng.normal(loc=0., scale=std, size=shape)
 
 class GlorotUniformInit(object):
     """Glorot and Bengio (2010) random uniform weights initialiser.
@@ -101,7 +118,7 @@ class GlorotUniformInit(object):
     def __call__(self, shape):
         assert len(shape) == 2, (
             'Initialiser should only be used for two dimensional arrays.')
-        std = self.gain * (2. / (shape[0] + shape[1]))**0.5
+        std = self.gain*(2. / (shape[0] + shape[1]))**0.5
         half_width = 3.**0.5 * std
         return self.rng.uniform(low=-half_width, high=half_width, size=shape)
 
