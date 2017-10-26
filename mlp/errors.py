@@ -13,14 +13,14 @@ import numpy as np
 
 
 class SumOfSquaredDiffsError(object):
-    """Sum of squared differences (squared Euclidean distance) error."""
+  """Sum of squared differences (squared Euclidean distance) error."""
 
-    def __call__(self, outputs, targets):
-        """Calculates error function given a batch of outputs and targets.
+  def __call__(self, outputs, targets):
+    """Calculates error function given a batch of outputs and targets.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
         Returns:
             Scalar cost function value.
@@ -59,12 +59,12 @@ class BinaryCrossEntropyError(object):
         return -np.mean(
             targets * np.log(outputs) + (1. - targets) * np.log(1. - ouputs))
 
-    def grad(self, outputs, targets):
-        """Calculates gradient of error function with respect to outputs.
+  def grad(self, outputs, targets):
+    """Calculates gradient of error function with respect to outputs.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
         Returns:
             Gradient of error function with respect to outputs.
