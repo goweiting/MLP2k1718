@@ -1,3 +1,6 @@
+#ignore reportfolder
+report
+
 #dropbox stuff
 *.dropbox*
 
