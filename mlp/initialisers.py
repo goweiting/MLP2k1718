@@ -83,7 +83,7 @@ class SELUInit(object):
         self.rng = rng
 
     def __call__(self, shape):
-        std = self.gain*(1. / (shape[0] + shape[1]))**0.5
+        std = self.gain*(1. / (shape[0]))**0.5
         return self.rng.normal(loc=0., scale=std, size=shape)
 
 class GlorotUniformInit(object):

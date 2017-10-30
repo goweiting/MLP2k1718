@@ -74,12 +74,6 @@ class Optimiser(object):
                 self.learning_rule.update_params(grads_wrt_params)
                 train_progress_bar.update(1)
 
-    def do_test_epoch(self):
-        with self.tqdm_progress(total=self.test_dataset.num_batches) as test_progress_bar:
-            test_progress_bar.set_description("Evaluation progress")
-            for inputs_batch, targets_batch in self.test_dataset:
-                pass
-
 
     def eval_monitors(self, dataset, label):
         """Evaluates the monitors for the given dataset.
@@ -95,9 +89,11 @@ class Optimiser(object):
                                      in self.data_monitors.keys()])
         for inputs_batch, targets_batch in dataset:
             activations = self.model.fprop(inputs_batch)
+            
             for key, data_monitor in self.data_monitors.items():
+                # activations[-1] is the output from the network!
                 data_mon_vals[key + label] += data_monitor(
-                    activations[-1], targets_batch)
+                    activations[-1], targets_batch)                 
         for key, data_monitor in self.data_monitors.items():
             data_mon_vals[key + label] /= dataset.num_batches
         return data_mon_vals
