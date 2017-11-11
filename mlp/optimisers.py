@@ -108,7 +108,6 @@ class Optimiser(object):
         if self.test_dataset is not None:  # INCLUDE THE TEST STATISTICS!
             epoch_stats.update(self.eval_monitors(
                 self.test_dataset, '(test)'))
-        epoch_stats['params_penalty'] = self.model.params_penalty()
         return epoch_stats
 
     def log_stats(self, epoch, epoch_time, stats):
