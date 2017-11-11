@@ -604,8 +604,7 @@ class DropoutLayer(StochasticLayer):
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
         if stochastic:
-            mask_shape = (
-                             1,) + inputs.shape[1:] if self.share_across_batch else inputs.shape
+            mask_shape = (1,) + inputs.shape[1:] if self.share_across_batch else inputs.shape
             self._mask = (self.rng.uniform(size=mask_shape) < self.incl_prob)
             return inputs * self._mask
         else:

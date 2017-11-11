@@ -18,7 +18,8 @@ class Optimiser(object):
     """Basic model optimiser."""
 
     def __init__(self, model, error, learning_rule, train_dataset,
-                 valid_dataset=None, data_monitors=None, notebook=False):
+                 valid_dataset=None, test_dataset= None,
+                 data_monitors=None, notebook=False):
         """Create a new optimiser instance.
 
         Args:
@@ -33,6 +34,9 @@ class Optimiser(object):
                 validation data sets) to monitor during training in addition
                 to the error. Keys should correspond to a string label for
                 the statistic being evaluated.
+            notebook: A boolean indicating whether experiments are carried out
+            in an ipython-notebook, useful for indicating which progress bar styles
+            to use.
         """
         self.model = model
         self.error = error
@@ -40,6 +44,7 @@ class Optimiser(object):
         self.learning_rule.initialise(self.model.params)
         self.train_dataset = train_dataset
         self.valid_dataset = valid_dataset
+        self.test_dataset = test_dataset
         self.data_monitors = OrderedDict([('error', error)])
         if data_monitors is not None:
             self.data_monitors.update(data_monitors)
@@ -100,6 +105,10 @@ class Optimiser(object):
         if self.valid_dataset is not None:
             epoch_stats.update(self.eval_monitors(
                 self.valid_dataset, '(valid)'))
+        if self.test_dataset is not None:  # INCLUDE THE TEST STATISTICS!
+            epoch_stats.update(self.eval_monitors(
+                self.test_dataset, '(test)'))
+        epoch_stats['params_penalty'] = self.model.params_penalty()
         return epoch_stats
 
     def log_stats(self, epoch, epoch_time, stats):
