@@ -64,6 +64,7 @@ class NormalInit(object):
     def __call__(self, shape):
         return self.rng.normal(loc=self.mean, scale=self.std, size=shape)
 
+
 class GlorotUniformInit(object):
     """Glorot and Bengio (2010) random uniform weights initialiser.
 
@@ -100,8 +101,8 @@ class GlorotUniformInit(object):
     def __call__(self, shape):
         assert len(shape) == 2, (
             'Initialiser should only be used for two dimensional arrays.')
-        std = self.gain * (2. / (shape[0] + shape[1]))**0.5
-        half_width = 3.**0.5 * std
+        std = self.gain * (2. / (shape[0] + shape[1])) ** 0.5
+        half_width = 3. ** 0.5 * std
         return self.rng.uniform(low=-half_width, high=half_width, size=shape)
 
 
@@ -139,5 +140,5 @@ class GlorotNormalInit(object):
         self.rng = rng
 
     def __call__(self, shape):
-        std = self.gain * (2. / (shape[0] + shape[1]))**0.5
+        std = self.gain * (2. / (shape[0] + shape[1])) ** 0.5
         return self.rng.normal(loc=0., scale=std, size=shape)

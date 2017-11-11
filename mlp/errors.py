@@ -25,7 +25,7 @@ class SumOfSquaredDiffsError(object):
         Returns:
             Scalar cost function value.
         """
-        return 0.5 * np.mean(np.sum((outputs - targets)**2, axis=1))
+        return 0.5 * np.mean(np.sum((outputs - targets) ** 2, axis=1))
 
     def grad(self, outputs, targets):
         """Calculates gradient of error function with respect to outputs.
@@ -154,7 +154,7 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Scalar error function value.
         """
-        probs = np.exp(outputs - outputs.max(-1)[:, None])
+        probs = np.exp(outputs)
         probs /= probs.sum(-1)[:, None]
         return -np.mean(np.sum(targets * np.log(probs), axis=1))
 
@@ -168,7 +168,7 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Gradient of error function with respect to outputs.
         """
-        probs = np.exp(outputs - outputs.max(-1)[:, None])
+        probs = np.exp(outputs)
         probs /= probs.sum(-1)[:, None]
         return (probs - targets) / outputs.shape[0]
 

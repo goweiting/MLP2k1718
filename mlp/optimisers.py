@@ -136,7 +136,7 @@ class Optimiser(object):
             for epoch in range(1, num_epochs + 1):
                 start_time = time.time()
                 self.do_training_epoch()
-                epoch_time = time.time()- start_time
+                epoch_time = time.time() - start_time
                 if epoch % stats_interval == 0:
                     stats = self.get_epoch_stats()
                     self.log_stats(epoch, epoch_time, stats)
@@ -145,4 +145,3 @@ class Optimiser(object):
         finish_train_time = time.time()
         total_train_time = finish_train_time - start_train_time
         return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time
-

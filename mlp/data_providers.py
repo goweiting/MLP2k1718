@@ -133,6 +133,7 @@ class DataProvider(object):
         self._curr_batch += 1
         return inputs_batch, targets_batch
 
+
 class MNISTDataProvider(DataProvider):
     """Data provider for MNIST handwritten digit images."""
 
@@ -199,6 +200,7 @@ class MNISTDataProvider(DataProvider):
         one_of_k_targets[range(int_targets.shape[0]), int_targets] = 1
         return one_of_k_targets
 
+
 class EMNISTDataProvider(DataProvider):
     """Data provider for EMNIST handwritten digit images."""
 
@@ -238,7 +240,7 @@ class EMNISTDataProvider(DataProvider):
         print(loaded.keys())
         inputs, targets = loaded['inputs'], loaded['targets']
         inputs = inputs.astype(np.float32)
-        inputs = np.reshape(inputs, newshape=(-1, 28*28))
+        inputs = np.reshape(inputs, newshape=(-1, 28 * 28))
         inputs = inputs / 255.0
         # pass the loaded data to the parent class __init__
         super(EMNISTDataProvider, self).__init__(
@@ -316,8 +318,8 @@ class MetOfficeDataProvider(DataProvider):
         super(MetOfficeDataProvider, self).__init__(
             inputs, targets, batch_size, max_num_batches, shuffle_order, rng)
 
-class CCPPDataProvider(DataProvider):
 
+class CCPPDataProvider(DataProvider):
     def __init__(self, which_set='train', input_dims=None, batch_size=10,
                  max_num_batches=-1, shuffle_order=True, rng=None):
         """Create a new Combined Cycle Power Plant data provider object.
