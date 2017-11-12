@@ -1018,3 +1018,60 @@ class ReshapeLayer(Layer):
 
     def __repr__(self):
         return 'ReshapeLayer(output_shape={0})'.format(self.output_shape)
+
+
+class MaxPoolingLayer(Layer):
+    def __init__(self, pool_size=2):
+        """Construct a new max-pooling layer.
+
+        Args:
+            pool_size: Positive integer specifying size of pools over
+               which to take maximum value. The outputs of the layer
+               feeding in to this layer must have a dimension which
+               is a multiple of this pool size such that the outputs
+               can be split in to pools with no dimensions left over.
+        """
+        self.pool_size = pool_size
+
+    def fprop(self, inputs):
+        """Forward propagates activations through the layer transformation.
+
+        This corresponds to taking the maximum over non-overlapping pools of
+        inputs of a fixed size `pool_size`.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+
+        Returns:
+            outputs: Array of layer outputs of shape (batch_size, output_dim).
+        """
+        assert inputs.shape[-1] % self.pool_size == 0, (
+            'Last dimension of inputs must be multiple of pool size')
+        pooled_inputs = inputs.reshape(
+            inputs.shape[:-1] +
+            (inputs.shape[-1] // self.pool_size, self.pool_size))
+        pool_maxes = pooled_inputs.max(-1)
+        self._mask = pooled_inputs == pool_maxes[..., None]
+        return pool_maxes
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        """Back propagates gradients through a layer.
+
+        Given gradients with respect to the outputs of the layer calculates the
+        gradients with respect to the layer inputs.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            outputs: Array of layer outputs calculated in forward pass of
+                shape (batch_size, output_dim).
+            grads_wrt_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Array of gradients with respect to the layer inputs of shape
+            (batch_size, input_dim).
+        """
+        return (self._mask * grads_wrt_outputs[..., None]).reshape(inputs.shape)
+
+    def __repr__(self):
+        return 'MaxPoolingLayer(pool_size={0})'.format(self.pool_size)
