@@ -711,9 +711,9 @@ class ELULayer(Layer):
         gradients with respect to the layer inputs.
         """
         # positive_gradients = (outputs >= 0.) * grads_wrt_outputs
-        positive_gradients = np.where(outputs>=0.,outputs,0.) * grads_wrt_outputs
+        positive_gradients = np.where(outputs>=0.,1,0.) * grads_wrt_outputs
         # outputs_to_use = (outputs < 0.) * outputs
-        outputs_to_use = np.where(outputs<0., outputs, 0.) * outputs
+        outputs_to_use = np.where(outputs<0., 1, 0.) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
         # negative_gradients[outputs >= 0.] = 0.
         negative_gradients = np.where(outputs>=0, 0, negative_gradients)
