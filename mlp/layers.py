@@ -808,12 +808,12 @@ class ELULayer(Layer):
         For inputs `x` and outputs `y` this corresponds to `y = max(0, x)`.
         """
         positive_inputs = np.maximum(inputs, 0.)
-        positive_inputs = np.where(positive_inputs > 1e25, 1e25, positive_inputs)  # WITH CLIPPINGS
+        positive_inputs[positive_inputs > 1e25] = 1e25  # WITH CLIPPINGS
 
         negative_inputs = np.copy(inputs)
         negative_inputs[negative_inputs > 0] = 0.
         negative_inputs = self.alpha * (np.exp(negative_inputs) - 1)
-        negative_inputs = np.where(negative_inputs < 1e-25, 1e-25, negative_inputs)  # WITH CLIPPINGS
+        negative_inputs[negative_inputs < 1e-25] = 1e-25  # WITH CLIPPINGS
 
         outputs = positive_inputs + negative_inputs
         return outputs
@@ -825,13 +825,13 @@ class ELULayer(Layer):
         gradients with respect to the layer inputs.
         """
         positive_gradients = (outputs >= 0) * grads_wrt_outputs
-        positive_gradients = np.where(positive_gradients > 1e25, 1e25, positive_gradients)  # WITH CLIPPINGS
+        positive_gradients[positive_gradients > 1e25] = 1e25  # WITH CLIPPINGS
 
         outputs_to_use = (outputs < 0) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
         negative_gradients[outputs >= 0] = 0.
         negative_gradients = negative_gradients * grads_wrt_outputs
-        negative_gradients = np.where(negative_gradients < 1e-25, 1e-25, negative_gradients)  # WITH CLIPPINGS
+        negative_gradients[negative_gradients < 1e-25] = 1e-25  # WITH CLIPPINGS
 
         gradients = positive_gradients + negative_gradients
         return gradients
