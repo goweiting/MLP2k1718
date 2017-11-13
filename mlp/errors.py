@@ -151,8 +151,9 @@ class CrossEntropySoftmaxError(object):
         :param normOutput:
         :return:
         """
-        maxO = normOutputs.max(-1)[:, None]
-        return maxO + np.log((np.exp(normOutputs - maxO)).sum(-1)[:, None])
+        maxO = normOutputs.max(-1)[:, None] # max for each mini-batch
+        # return maxO + np.log((np.exp(normOutputs - maxO)).sum(-1)[:, None])
+        return maxO + np.logaddexp(normOutputs, maxO, axis=1).sum(-1)[:,None]
 
     def __call__(self, outputs, targets):
         """Calculates error function given a batch of outputs and targets.
@@ -165,8 +166,8 @@ class CrossEntropySoftmaxError(object):
             Scalar error function value.
         """
         normOutputs = np.exp(outputs - outputs.max(-1)[:, None])
-        logProb = normOutputs - self.LSE(normOutputs)
-        return -np.sum(np.sum(targets * (logProb), axis=1))
+        logProb = np.log(normOutputs) - self.LSE(normOutputs)
+        return -np.mean(np.sum(targets * logProb, axis=1))
 
     def grad(self, outputs, targets):
         """Calculates gradient of error function with respect to outputs.
