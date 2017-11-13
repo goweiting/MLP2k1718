@@ -151,9 +151,9 @@ class CrossEntropySoftmaxError(object):
         :param normOutput:
         :return:
         """
-        maxO = normOutputs.max(-1)[:, None] # max for each mini-batch
+        maxO = normOutputs.max(-1)[:, None]  # max for each mini-batch
         # return maxO + np.log((np.exp(normOutputs - maxO)).sum(-1)[:, None])
-        return maxO + np.logaddexp(normOutputs, maxO, axis=1).sum(-1)[:,None]
+        return maxO + np.logaddexp(normOutputs, maxO).sum(-1)[:, None]
 
     def __call__(self, outputs, targets):
         """Calculates error function given a batch of outputs and targets.
