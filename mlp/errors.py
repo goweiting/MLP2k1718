@@ -144,7 +144,6 @@ class CrossEntropyError(object):
 class CrossEntropySoftmaxError(object):
     """Multi-class cross entropy error with Softmax applied to outputs."""
 
-
     def LSE(self, normOutput):
         """
         Calculate the Log-sum-exp estimate:
@@ -152,8 +151,8 @@ class CrossEntropySoftmaxError(object):
         :param normOutput:
         :return:
         """
-        maxO = normOutput.max(-1)[:,None]
-        return maxO + np.log(np.sum(np.exp(normOutput - maxO)))
+        maxO = normOutput.max(-1)[:, None]
+        return maxO + np.log((np.exp(normOutput - maxO)).sum(-1)[:, None])
 
     def __call__(self, outputs, targets):
         """Calculates error function given a batch of outputs and targets.
@@ -185,7 +184,6 @@ class CrossEntropySoftmaxError(object):
 
     def __repr__(self):
         return 'CrossEntropySoftmaxError_LSE'
-
 
 # class CrossEntropySoftmaxError(object):
 #     """Multi-class cross entropy error with Softmax applied to outputs."""
