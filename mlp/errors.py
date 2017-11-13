@@ -144,15 +144,15 @@ class CrossEntropyError(object):
 class CrossEntropySoftmaxError(object):
     """Multi-class cross entropy error with Softmax applied to outputs."""
 
-    def LSE(self, normOutput):
+    def LSE(self, normOutputs):
         """
         Calculate the Log-sum-exp estimate:
         LSE(x1,x2,..,xn) = x* + log(exp(x1-x*) + .. + exp(xn-x*))
         :param normOutput:
         :return:
         """
-        maxO = normOutput.max(-1)[:, None]
-        return maxO + np.log((np.exp(normOutput - maxO)).sum(-1)[:, None])
+        maxO = normOutputs.max(-1)[:, None]
+        return maxO + np.log((np.exp(normOutputs - maxO)).sum(-1)[:, None])
 
     def __call__(self, outputs, targets):
         """Calculates error function given a batch of outputs and targets.
@@ -166,7 +166,7 @@ class CrossEntropySoftmaxError(object):
         """
         normOutputs = np.exp(outputs - outputs.max(-1)[:, None])
         logProb = normOutputs - self.LSE(normOutputs)
-        return -np.mean(np.sum(targets * (logProb), axis=1))
+        return -np.sum(np.sum(targets * (logProb), axis=1))
 
     def grad(self, outputs, targets):
         """Calculates gradient of error function with respect to outputs.
@@ -180,7 +180,7 @@ class CrossEntropySoftmaxError(object):
         """
         normOutputs = np.exp(outputs - outputs.max(-1)[:, None])
         logProb = normOutputs - self.LSE(normOutputs)
-        return (logProb - targets) / outputs.shape[0]
+        return logProb - targets
 
     def __repr__(self):
         return 'CrossEntropySoftmaxError_LSE'
