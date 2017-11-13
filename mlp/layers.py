@@ -97,6 +97,130 @@ class LayerWithParameters(Layer):
         raise NotImplementedError()
 
 
+class StochasticLayerWithParameters(Layer):
+    """Specialised layer which uses a stochastic forward propagation."""
+
+    def __init__(self, rng=None):
+        """Constructs a new StochasticLayer object.
+
+        Args:
+            rng (RandomState): Seeded random number generator object.
+        """
+        if rng is None:
+            rng = np.random.RandomState(DEFAULT_SEED)
+        self.rng = rng
+
+    def fprop(self, inputs, stochastic=True):
+        """Forward propagates activations through the layer transformation.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            stochastic: Flag allowing different deterministic
+                forward-propagation mode in addition to default stochastic
+                forward-propagation e.g. for use at test time. If False
+                a deterministic forward-propagation transformation
+                corresponding to the expected output of the stochastic
+                forward-propagation is applied.
+
+        Returns:
+            outputs: Array of layer outputs of shape (batch_size, output_dim).
+        """
+        raise NotImplementedError()
+
+    def grads_wrt_params(self, inputs, grads_wrt_outputs):
+        """Calculates gradients with respect to layer parameters.
+
+        Args:
+            inputs: Array of inputs to layer of shape (batch_size, input_dim).
+            grads_wrt_to_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            List of arrays of gradients with respect to the layer parameters
+            with parameter gradients appearing in same order in tuple as
+            returned from `get_params` method.
+        """
+        raise NotImplementedError()
+
+    def params_penalty(self):
+        """Returns the parameter dependent penalty term for this layer.
+
+        If no parameter-dependent penalty terms are set this returns zero.
+        """
+        raise NotImplementedError()
+
+    @property
+    def params(self):
+        """Returns a list of parameters of layer.
+
+        Returns:
+            List of current parameter values. This list should be in the
+            corresponding order to the `values` argument to `set_params`.
+        """
+        raise NotImplementedError()
+
+    @params.setter
+    def params(self, values):
+        """Sets layer parameters from a list of values.
+
+        Args:
+            values: List of values to set parameters to. This list should be
+                in the corresponding order to what is returned by `get_params`.
+        """
+        raise NotImplementedError()
+
+
+class StochasticLayer(Layer):
+    """Specialised layer which uses a stochastic forward propagation."""
+
+    def __init__(self, rng=None):
+        """Constructs a new StochasticLayer object.
+
+        Args:
+            rng (RandomState): Seeded random number generator object.
+        """
+        if rng is None:
+            rng = np.random.RandomState(DEFAULT_SEED)
+        self.rng = rng
+
+    def fprop(self, inputs, stochastic=True):
+        """Forward propagates activations through the layer transformation.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            stochastic: Flag allowing different deterministic
+                forward-propagation mode in addition to default stochastic
+                forward-propagation e.g. for use at test time. If False
+                a deterministic forward-propagation transformation
+                corresponding to the expected output of the stochastic
+                forward-propagation is applied.
+
+        Returns:
+            outputs: Array of layer outputs of shape (batch_size, output_dim).
+        """
+        raise NotImplementedError()
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        """Back propagates gradients through a layer.
+
+        Given gradients with respect to the outputs of the layer calculates the
+        gradients with respect to the layer inputs. This should correspond to
+        default stochastic forward-propagation.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            outputs: Array of layer outputs calculated in forward pass of
+                shape (batch_size, output_dim).
+            grads_wrt_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Array of gradients with respect to the layer inputs of shape
+            (batch_size, input_dim).
+        """
+        raise NotImplementedError()
+
+
 class AffineLayer(LayerWithParameters):
     """Layer implementing an affine tranformation of its inputs.
 
@@ -208,6 +332,135 @@ class AffineLayer(LayerWithParameters):
     def __repr__(self):
         return 'AffineLayer(input_dim={0}, output_dim={1})'.format(
             self.input_dim, self.output_dim)
+
+
+class BatchNormalizationLayer(StochasticLayerWithParameters):
+    """Layer implementing an affine tranformation of its inputs.
+
+    This layer is parameterised by a weight matrix and bias vector.
+    """
+
+    def __init__(self, input_dim, rng=None):
+        """Initialises a parameterised affine layer.
+
+        Args:
+            input_dim (int): Dimension of inputs to the layer.
+            output_dim (int): Dimension of the layer outputs.
+            weights_initialiser: Initialiser for the weight parameters.
+            biases_initialiser: Initialiser for the bias parameters.
+            weights_penalty: Weights-dependent penalty term (regulariser) or
+                None if no regularisation is to be applied to the weights.
+            biases_penalty: Biases-dependent penalty term (regulariser) or
+                None if no regularisation is to be applied to the biases.
+        """
+        super(BatchNormalizationLayer, self).__init__(rng)
+        self.beta = np.random.normal(size=(input_dim))
+        self.gamma = np.random.normal(size=(input_dim))
+        self.epsilon = 0.00001
+        self.cache = None
+        self.input_dim = input_dim
+
+    def fprop(self, inputs, stochastic=True):
+        """Forward propagates inputs through a layer."""
+
+        raise NotImplementedError
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        """Back propagates gradients through a layer.
+
+        Given gradients with respect to the outputs of the layer calculates the
+        gradients with respect to the layer inputs.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            outputs: Array of layer outputs calculated in forward pass of
+                shape (batch_size, output_dim).
+            grads_wrt_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Array of gradients with respect to the layer inputs of shape
+            (batch_size, input_dim).
+        """
+
+        raise NotImplementedError
+
+    def grads_wrt_params(self, inputs, grads_wrt_outputs):
+        """Calculates gradients with respect to layer parameters.
+
+        Args:
+            inputs: array of inputs to layer of shape (batch_size, input_dim)
+            grads_wrt_to_outputs: array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim)
+
+        Returns:
+            list of arrays of gradients with respect to the layer parameters
+            `[grads_wrt_weights, grads_wrt_biases]`.
+        """
+        raise NotImplementedError
+
+    def params_penalty(self):
+        """Returns the parameter dependent penalty term for this layer.
+
+        If no parameter-dependent penalty terms are set this returns zero.
+        """
+        params_penalty = 0
+
+        return params_penalty
+
+    @property
+    def params(self):
+        """A list of layer parameter values: `[gammas, betas]`."""
+        return [self.gamma, self.beta]
+
+    @params.setter
+    def params(self, values):
+        self.gamma = values[0]
+        self.beta = values[1]
+
+    def __repr__(self):
+        return 'BatchNormalizationLayer(input_dim={0})'.format(
+            self.input_dim)
+
+
+class SigmoidLayer(Layer):
+    """Layer implementing an element-wise logistic sigmoid transformation."""
+
+    def fprop(self, inputs):
+        """Forward propagates activations through the layer transformation.
+
+        For inputs `x` and outputs `y` this corresponds to
+        `y = 1 / (1 + exp(-x))`.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+
+        Returns:
+            outputs: Array of layer outputs of shape (batch_size, output_dim).
+        """
+        return 1. / (1. + np.exp(-inputs))
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        """Back propagates gradients through a layer.
+
+        Given gradients with respect to the outputs of the layer calculates the
+        gradients with respect to the layer inputs.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            outputs: Array of layer outputs calculated in forward pass of
+                shape (batch_size, output_dim).
+            grads_wrt_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Array of gradients with respect to the layer inputs of shape
+            (batch_size, input_dim).
+        """
+        return grads_wrt_outputs * outputs * (1. - outputs)
+
+    def __repr__(self):
+        return 'SigmoidLayer'
 
 
 class ConvolutionalLayer(LayerWithParameters):
@@ -356,324 +609,6 @@ class ConvolutionalLayer(LayerWithParameters):
         )
 
 
-class StochasticLayerWithParameters(Layer):
-    """Specialised layer which uses a stochastic forward propagation."""
-
-    def __init__(self, rng=None):
-        """Constructs a new StochasticLayer object.
-
-        Args:
-            rng (RandomState): Seeded random number generator object.
-        """
-        if rng is None:
-            rng = np.random.RandomState(DEFAULT_SEED)
-        self.rng = rng
-
-    def fprop(self, inputs, stochastic=True):
-        """Forward propagates activations through the layer transformation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            stochastic: Flag allowing different deterministic
-                forward-propagation mode in addition to default stochastic
-                forward-propagation e.g. for use at test time. If False
-                a deterministic forward-propagation transformation
-                corresponding to the expected output of the stochastic
-                forward-propagation is applied.
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        raise NotImplementedError()
-
-    def grads_wrt_params(self, inputs, grads_wrt_outputs):
-        """Calculates gradients with respect to layer parameters.
-
-        Args:
-            inputs: Array of inputs to layer of shape (batch_size, input_dim).
-            grads_wrt_to_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            List of arrays of gradients with respect to the layer parameters
-            with parameter gradients appearing in same order in tuple as
-            returned from `get_params` method.
-        """
-        raise NotImplementedError()
-
-    def params_penalty(self):
-        """Returns the parameter dependent penalty term for this layer.
-
-        If no parameter-dependent penalty terms are set this returns zero.
-        """
-        raise NotImplementedError()
-
-    @property
-    def params(self):
-        """Returns a list of parameters of layer.
-
-        Returns:
-            List of current parameter values. This list should be in the
-            corresponding order to the `values` argument to `set_params`.
-        """
-        raise NotImplementedError()
-
-    @params.setter
-    def params(self, values):
-        """Sets layer parameters from a list of values.
-
-        Args:
-            values: List of values to set parameters to. This list should be
-                in the corresponding order to what is returned by `get_params`.
-        """
-        raise NotImplementedError()
-
-
-class BatchNormalizationLayer(StochasticLayerWithParameters):
-    """Layer implementing an affine tranformation of its inputs.
-
-    This layer is parameterised by a weight matrix and bias vector.
-    """
-
-    def __init__(self, input_dim, rng=None):
-        """Initialises a parameterised affine layer.
-
-        Args:
-            input_dim (int): Dimension of inputs to the layer.
-            output_dim (int): Dimension of the layer outputs.
-            weights_initialiser: Initialiser for the weight parameters.
-            biases_initialiser: Initialiser for the bias parameters.
-            weights_penalty: Weights-dependent penalty term (regulariser) or
-                None if no regularisation is to be applied to the weights.
-            biases_penalty: Biases-dependent penalty term (regulariser) or
-                None if no regularisation is to be applied to the biases.
-        """
-        super(BatchNormalizationLayer, self).__init__(rng)
-        self.beta = np.random.normal(size=(input_dim))
-        self.gamma = np.random.normal(size=(input_dim))
-        self.epsilon = 0.00001
-        self.cache = None
-        self.input_dim = input_dim
-
-    def fprop(self, inputs, stochastic=True):
-        """Forward propagates inputs through a layer."""
-
-        raise NotImplementedError
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-
-        raise NotImplementedError
-
-    def grads_wrt_params(self, inputs, grads_wrt_outputs):
-        """Calculates gradients with respect to layer parameters.
-
-        Args:
-            inputs: array of inputs to layer of shape (batch_size, input_dim)
-            grads_wrt_to_outputs: array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim)
-
-        Returns:
-            list of arrays of gradients with respect to the layer parameters
-            `[grads_wrt_weights, grads_wrt_biases]`.
-        """
-        raise NotImplementedError
-
-    def params_penalty(self):
-        """Returns the parameter dependent penalty term for this layer.
-
-        If no parameter-dependent penalty terms are set this returns zero.
-        """
-        params_penalty = 0
-
-        return params_penalty
-
-    @property
-    def params(self):
-        """A list of layer parameter values: `[gammas, betas]`."""
-        return [self.gamma, self.beta]
-
-    @params.setter
-    def params(self, values):
-        self.gamma = values[0]
-        self.beta = values[1]
-
-    def __repr__(self):
-        return 'BatchNormalizationLayer(input_dim={0})'.format(
-            self.input_dim)
-
-
-class StochasticLayer(Layer):
-    """Specialised layer which uses a stochastic forward propagation."""
-
-    def __init__(self, rng=None):
-        """Constructs a new StochasticLayer object.
-
-        Args:
-            rng (RandomState): Seeded random number generator object.
-        """
-        if rng is None:
-            rng = np.random.RandomState(DEFAULT_SEED)
-        self.rng = rng
-
-    def fprop(self, inputs, stochastic=True):
-        """Forward propagates activations through the layer transformation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            stochastic: Flag allowing different deterministic
-                forward-propagation mode in addition to default stochastic
-                forward-propagation e.g. for use at test time. If False
-                a deterministic forward-propagation transformation
-                corresponding to the expected output of the stochastic
-                forward-propagation is applied.
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        raise NotImplementedError()
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs. This should correspond to
-        default stochastic forward-propagation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-        raise NotImplementedError()
-
-
-class DropoutLayer(StochasticLayer):
-    """Layer which stochastically drops input dimensions in its output."""
-
-    def __init__(self, rng=None, incl_prob=0.5, share_across_batch=True):
-        """Construct a new dropout layer.
-
-        Args:
-            rng (RandomState): Seeded random number generator.
-            incl_prob: Scalar value in (0, 1] specifying the probability of
-                each input dimension being included in the output.
-            share_across_batch: Whether to use same dropout mask across
-                all inputs in a batch or use per input masks.
-        """
-        super(DropoutLayer, self).__init__(rng)
-        assert incl_prob > 0. and incl_prob <= 1.
-        self.incl_prob = incl_prob
-        self.share_across_batch = share_across_batch
-        self.rng = rng
-
-    def fprop(self, inputs, stochastic=True):
-        """Forward propagates activations through the layer transformation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            stochastic: Flag allowing different deterministic
-                forward-propagation mode in addition to default stochastic
-                forward-propagation e.g. for use at test time. If False
-                a deterministic forward-propagation transformation
-                corresponding to the expected output of the stochastic
-                forward-propagation is applied.
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        if stochastic:
-            mask_shape = (1,) + inputs.shape[1:] if self.share_across_batch else inputs.shape
-            self._mask = (self.rng.uniform(size=mask_shape) < self.incl_prob)
-            return inputs * self._mask
-        else:
-            return inputs * self.incl_prob
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs. This should correspond to
-        default stochastic forward-propagation.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-        return grads_wrt_outputs * self._mask
-
-    def __repr__(self):
-        return 'DropoutLayer(incl_prob={0:.1f})'.format(self.incl_prob)
-
-
-class SigmoidLayer(Layer):
-    """Layer implementing an element-wise logistic sigmoid transformation."""
-
-    def fprop(self, inputs):
-        """Forward propagates activations through the layer transformation.
-
-        For inputs `x` and outputs `y` this corresponds to
-        `y = 1 / (1 + exp(-x))`.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        return 1. / (1. + np.exp(-inputs))
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-        return grads_wrt_outputs * outputs * (1. - outputs)
-
-    def __repr__(self):
-        return 'SigmoidLayer'
-
-
 class ReluLayer(Layer):
     """Layer implementing an element-wise rectified linear transformation."""
 
@@ -713,30 +648,6 @@ class ReluLayer(Layer):
         return 'ReluLayer'
 
 
-# class LeakyReluLayer(Layer):
-#     """Layer implementing an element-wise leaky rectified linear transformation."""
-#
-#     def __init__(self, alpha=0.01):
-#         self.alpha = alpha
-#         super()
-#
-#     def fprop(self, inputs):
-#         """Forward propagates activations through the layer transformation.
-#         For inputs `x` and outputs `y` this corresponds to `y = x if x > 0, else alpha*x if x < 0 `.
-#         """
-#         return np.where(inputs > 0, inputs, self.alpha * inputs)
-#
-#     def bprop(self, inputs, outputs, grads_wrt_outputs, alpha=0.01):
-#         """Back propagates gradients through a layer.
-#         Given gradients with respect to the outputs of the layer calculates the
-#         gradients with respect to the layer inputs.
-#         """
-#         return np.where(outputs > 0, 1, self.alpha) * grads_wrt_outputs
-#
-#     def __repr__(self):
-#         return 'LeakyReluLayer'
-
-
 class LeakyReluLayer(Layer):
     """Layer implementing an element-wise rectified linear transformation."""
 
@@ -772,30 +683,6 @@ class LeakyReluLayer(Layer):
         return 'LeakyReluLayer'
 
 
-# class ELULayer(Layer):
-#     """Layer implementing an ELU activation."""
-#
-#     def __init__(self, alpha=1):
-#         self.alpha = alpha
-#         super()
-#
-#     def fprop(self, inputs):
-#         """Forward propagates activations through the layer transformation.
-#         For inputs `x` and outputs `y` this corresponds to `alpha*(e^x - 1) if x < 0 else x`.
-#         """
-#         return np.where(inputs <= 0, self.alpha * np.exp(inputs) - 1, inputs)
-#
-#     def bprop(self, inputs, outputs, grads_wrt_outputs):
-#         """Back propagates gradients through a layer.
-#         Given gradients with respect to the outputs of the layer calculates the
-#         gradients with respect to the layer inputs.
-#         """
-#         return np.where(outputs <= 0, outputs + self.alpha, 1.) * grads_wrt_outputs
-#
-#     def __repr__(self):
-#         return 'ELULayer'
-
-
 class ELULayer(Layer):
     """Layer implementing an ELU activation."""
 
@@ -808,12 +695,10 @@ class ELULayer(Layer):
         For inputs `x` and outputs `y` this corresponds to `y = max(0, x)`.
         """
         positive_inputs = np.maximum(inputs, 0.)
-        positive_inputs[positive_inputs > 1e25] = 1e25  # WITH CLIPPINGS
 
         negative_inputs = np.copy(inputs)
         negative_inputs[negative_inputs > 0] = 0.
         negative_inputs = self.alpha * (np.exp(negative_inputs) - 1)
-        negative_inputs[negative_inputs < 1e-25] = 1e-25  # WITH CLIPPINGS
 
         outputs = positive_inputs + negative_inputs
         return outputs
@@ -825,14 +710,10 @@ class ELULayer(Layer):
         gradients with respect to the layer inputs.
         """
         positive_gradients = (outputs >= 0) * grads_wrt_outputs
-        positive_gradients[positive_gradients > 1e25] = 1e25  # WITH CLIPPINGS
-
         outputs_to_use = (outputs < 0) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
         negative_gradients[outputs >= 0] = 0.
         negative_gradients = negative_gradients * grads_wrt_outputs
-        negative_gradients[negative_gradients < 1e-25] = 1e-25  # WITH CLIPPINGS
-
         gradients = positive_gradients + negative_gradients
         return gradients
 
@@ -840,38 +721,10 @@ class ELULayer(Layer):
         return 'ELULayer'
 
 
-# class SELULayer(Layer):
-#     """Layer implementing a Self Normalizing ELU."""
-#
-#     def __init__(self, a=1.6733, l=1.0507):
-#         # α01 ≈ 1.6733 and λ01 ≈ 1.0507
-#         self.a = np.float(a)
-#         self.l = np.float(l)
-#         super()
-#
-#     def fprop(self, inputs):
-#         """Forward propagates activations through the layer transformation.
-#         For inputs `x` and outputs `y` this corresponds to `λα*(exp^(x)-1) if x <= 0 else x`.
-#         """
-#         return np.where(inputs <= 0., self.a * self.l * (np.exp(inputs) - 1), inputs * self.l)
-#
-#     def bprop(self, inputs, outputs, grads_wrt_outputs):
-#         """Back propagates gradients through a layer.
-#         Given gradients with respect to the outputs of the layer calculates the
-#         gradients with respect to the layer inputs.
-#         If output <= 0, grad = outputs + λα
-#         """
-#         return np.where(outputs <= 0., outputs + self.a * self.l, self.l) * grads_wrt_outputs
-#
-#     def __repr__(self):
-#         return 'SELULayer'
-
-
 class SELULayer(Layer):
     """Layer implementing an element-wise rectified linear transformation."""
 
     # α01 ≈ 1.6733 and λ01 ≈ 1.0507
-
     def __init__(self):
         self.alpha = 1.6733
         self.lamda = 1.0507
@@ -1045,6 +898,71 @@ class RadialBasisFunctionLayer(Layer):
         return 'RadialBasisFunctionLayer(grid_dim={0})'.format(self.grid_dim)
 
 
+class DropoutLayer(StochasticLayer):
+    """Layer which stochastically drops input dimensions in its output."""
+
+    def __init__(self, rng=None, incl_prob=0.5, share_across_batch=True):
+        """Construct a new dropout layer.
+
+        Args:
+            rng (RandomState): Seeded random number generator.
+            incl_prob: Scalar value in (0, 1] specifying the probability of
+                each input dimension being included in the output.
+            share_across_batch: Whether to use same dropout mask across
+                all inputs in a batch or use per input masks.
+        """
+        super(DropoutLayer, self).__init__(rng)
+        assert incl_prob > 0. and incl_prob <= 1.
+        self.incl_prob = incl_prob
+        self.share_across_batch = share_across_batch
+        self.rng = rng
+
+    def fprop(self, inputs, stochastic=True):
+        """Forward propagates activations through the layer transformation.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            stochastic: Flag allowing different deterministic
+                forward-propagation mode in addition to default stochastic
+                forward-propagation e.g. for use at test time. If False
+                a deterministic forward-propagation transformation
+                corresponding to the expected output of the stochastic
+                forward-propagation is applied.
+
+        Returns:
+            outputs: Array of layer outputs of shape (batch_size, output_dim).
+        """
+        if stochastic:
+            mask_shape = (1,) + inputs.shape[1:] if self.share_across_batch else inputs.shape
+            self._mask = (self.rng.uniform(size=mask_shape) < self.incl_prob)
+            return inputs * self._mask
+        else:
+            return inputs * self.incl_prob
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        """Back propagates gradients through a layer.
+
+        Given gradients with respect to the outputs of the layer calculates the
+        gradients with respect to the layer inputs. This should correspond to
+        default stochastic forward-propagation.
+
+        Args:
+            inputs: Array of layer inputs of shape (batch_size, input_dim).
+            outputs: Array of layer outputs calculated in forward pass of
+                shape (batch_size, output_dim).
+            grads_wrt_outputs: Array of gradients with respect to the layer
+                outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Array of gradients with respect to the layer inputs of shape
+            (batch_size, input_dim).
+        """
+        return grads_wrt_outputs * self._mask
+
+    def __repr__(self):
+        return 'DropoutLayer(incl_prob={0:.1f})'.format(self.incl_prob)
+
+
 class ReshapeLayer(Layer):
     """Layer which reshapes dimensions of inputs."""
 
@@ -1099,60 +1017,3 @@ class ReshapeLayer(Layer):
 
     def __repr__(self):
         return 'ReshapeLayer(output_shape={0})'.format(self.output_shape)
-
-
-class MaxPoolingLayer(Layer):
-    def __init__(self, pool_size=2):
-        """Construct a new max-pooling layer.
-
-        Args:
-            pool_size: Positive integer specifying size of pools over
-               which to take maximum value. The outputs of the layer
-               feeding in to this layer must have a dimension which
-               is a multiple of this pool size such that the outputs
-               can be split in to pools with no dimensions left over.
-        """
-        self.pool_size = pool_size
-
-    def fprop(self, inputs):
-        """Forward propagates activations through the layer transformation.
-
-        This corresponds to taking the maximum over non-overlapping pools of
-        inputs of a fixed size `pool_size`.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-
-        Returns:
-            outputs: Array of layer outputs of shape (batch_size, output_dim).
-        """
-        assert inputs.shape[-1] % self.pool_size == 0, (
-            'Last dimension of inputs must be multiple of pool size')
-        pooled_inputs = inputs.reshape(
-            inputs.shape[:-1] +
-            (inputs.shape[-1] // self.pool_size, self.pool_size))
-        pool_maxes = pooled_inputs.max(-1)
-        self._mask = pooled_inputs == pool_maxes[..., None]
-        return pool_maxes
-
-    def bprop(self, inputs, outputs, grads_wrt_outputs):
-        """Back propagates gradients through a layer.
-
-        Given gradients with respect to the outputs of the layer calculates the
-        gradients with respect to the layer inputs.
-
-        Args:
-            inputs: Array of layer inputs of shape (batch_size, input_dim).
-            outputs: Array of layer outputs calculated in forward pass of
-                shape (batch_size, output_dim).
-            grads_wrt_outputs: Array of gradients with respect to the layer
-                outputs of shape (batch_size, output_dim).
-
-        Returns:
-            Array of gradients with respect to the layer inputs of shape
-            (batch_size, input_dim).
-        """
-        return (self._mask * grads_wrt_outputs[..., None]).reshape(inputs.shape)
-
-    def __repr__(self):
-        return 'MaxPoolingLayer(pool_size={0})'.format(self.pool_size)

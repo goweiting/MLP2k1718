@@ -141,19 +141,8 @@ class CrossEntropyError(object):
         return 'CrossEntropyError'
 
 
-class CrossEntropySoftmaxError(object):
-    """Multi-class cross entropy error with Softmax applied to outputs."""
-
-    def LSE(self, normOutputs):
-        """
-        Calculate the Log-sum-exp estimate:
-        LSE(x1,x2,..,xn) = x* + log(exp(x1-x*) + .. + exp(xn-x*))
-        :param normOutput:
-        :return:
-        """
-        maxO = normOutputs.max(-1)[:, None]  # max for each mini-batch
-        # return maxO + np.log((np.exp(normOutputs - maxO)).sum(-1)[:, None])
-        return maxO + np.logaddexp(normOutputs, maxO).sum(-1)[:, None]
+class CrossEntropyLogSoftmaxError(object):
+    """Multi-class cross entropy error with Log-Softmax applied to outputs."""
 
     def __call__(self, outputs, targets):
         """Calculates error function given a batch of outputs and targets.
@@ -165,8 +154,8 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Scalar error function value.
         """
-        normOutputs = np.exp(outputs - outputs.max(-1)[:, None])
-        logProb = np.log(normOutputs) - self.LSE(normOutputs)
+        normOutputs = outputs - outputs.max(-1)[:, None]
+        logProb = normOutputs - np.log(np.exp(normOutputs).sum(-1)[:,None])
         return -np.mean(np.sum(targets * logProb, axis=1))
 
     def grad(self, outputs, targets):
@@ -179,43 +168,44 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Gradient of error function with respect to outputs.
         """
-        normOutputs = np.exp(outputs - outputs.max(-1)[:, None])
-        logProb = normOutputs - self.LSE(normOutputs)
-        return logProb - targets
+        normOutputs = outputs - outputs.max(-1)[:, None]
+        logProb = normOutputs - np.log(np.exp(normOutputs).sum(-1)[:, None])
+        return (logProb - targets) / outputs.shape[0]
 
     def __repr__(self):
-        return 'CrossEntropySoftmaxError_LSE'
+        return 'CrossEntropyLogSoftmaxError'
 
-# class CrossEntropySoftmaxError(object):
-#     """Multi-class cross entropy error with Softmax applied to outputs."""
-#
-#     def __call__(self, outputs, targets):
-#         """Calculates error function given a batch of outputs and targets.
-#
-#         Args:
-#             outputs: Array of model outputs of shape (batch_size, output_dim).
-#             targets: Array of target outputs of shape (batch_size, output_dim).
-#
-#         Returns:
-#             Scalar error function value.
-#         """
-#         probs = np.exp(outputs - outputs.max(-1)[:, None])
-#         probs /= probs.sum(-1)[:, None] # this is the SOFTMAX
-#         return -np.mean(np.sum(targets * np.log(probs), axis=1)) # THIS IS THE LOSS FUNCTION!
-#
-#     def grad(self, outputs, targets):
-#         """Calculates gradient of error function with respect to outputs.
-#
-#         Args:
-#             outputs: Array of model outputs of shape (batch_size, output_dim).
-#             targets: Array of target outputs of shape (batch_size, output_dim).
-#
-#         Returns:
-#             Gradient of error function with respect to outputs.
-#         """
-#         probs = np.exp(outputs - outputs.max(-1)[:, None])
-#         probs /= probs.sum(-1)[:, None]
-#         return (probs - targets) / outputs.shape[0]
-#
-#     def __repr__(self):
-#         return 'CrossEntropySoftmaxError'
+
+class CrossEntropySoftmaxError(object):
+    """Multi-class cross entropy error with Softmax applied to outputs."""
+
+    def __call__(self, outputs, targets):
+        """Calculates error function given a batch of outputs and targets.
+
+        Args:
+            outputs: Array of model outputs of shape (batch_size, output_dim).
+            targets: Array of target outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Scalar error function value.
+        """
+        probs = np.exp(outputs - outputs.max(-1)[:, None])
+        probs /= probs.sum(-1)[:, None]  # this is the SOFTMAX
+        return -np.mean(np.sum(targets * np.log(probs), axis=1))  # THIS IS THE LOSS FUNCTION!
+
+    def grad(self, outputs, targets):
+        """Calculates gradient of error function with respect to outputs.
+
+        Args:
+            outputs: Array of model outputs of shape (batch_size, output_dim).
+            targets: Array of target outputs of shape (batch_size, output_dim).
+
+        Returns:
+            Gradient of error function with respect to outputs.
+        """
+        probs = np.exp(outputs - outputs.max(-1)[:, None])
+        probs /= probs.sum(-1)[:, None]
+        return (probs - targets) / outputs.shape[0]
+
+    def __repr__(self):
+        return 'CrossEntropySoftmaxError'
