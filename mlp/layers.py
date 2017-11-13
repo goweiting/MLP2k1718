@@ -697,7 +697,8 @@ class ELULayer(Layer):
         positive_inputs = np.maximum(inputs, 0.)
 
         negative_inputs = np.copy(inputs)
-        negative_inputs[negative_inputs > 0] = 0.
+        #negative_inputs[negative_inputs > 0.] = 0.
+        negative_inputs = np.where(negative_inputs>0., 0., negative_inputs)
         negative_inputs = self.alpha * (np.exp(negative_inputs) - 1)
 
         outputs = positive_inputs + negative_inputs
@@ -709,10 +710,14 @@ class ELULayer(Layer):
         Given gradients with respect to the outputs of the layer calculates the
         gradients with respect to the layer inputs.
         """
-        positive_gradients = (outputs >= 0) * grads_wrt_outputs
-        outputs_to_use = (outputs < 0) * outputs
+        # positive_gradients = (outputs >= 0.) * grads_wrt_outputs
+        positive_gradients = np.where(outputs>=0.,outputs,0.) * grads_wrt_outputs
+        # outputs_to_use = (outputs < 0.) * outputs
+        outputs_to_use = np.where(outputs<0., outputs, 0.) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
-        negative_gradients[outputs >= 0] = 0.
+        # negative_gradients[outputs >= 0.] = 0.
+        negative_gradients = np.where(outputs>=0, 0, negative_gradients)
+
         negative_gradients = negative_gradients * grads_wrt_outputs
         gradients = positive_gradients + negative_gradients
         return gradients
