@@ -142,3 +142,26 @@ class GlorotNormalInit(object):
     def __call__(self, shape):
         std = self.gain * (2. / (shape[0] + shape[1])) ** 0.5
         return self.rng.normal(loc=0., scale=std, size=shape)
+    
+    
+class SELUInit(object):
+    """SELU Initializer.
+    Initialises an two-dimensional parameter array using fixed point at
+    zero mean and variance of 1/n
+    """
+    def __init__(self, gain=1., rng=None):
+        """Construct a normalised initilisation random initialiser object.
+        Args:
+            gain: Multiplicative factor to scale initialised weights by.
+                Recommended values is 1 for affine layers followed by
+                logistic sigmoid layers (or another affine layer).
+            rng (RandomState): Seeded random number generator.
+        """
+        self.gain = gain
+        if rng is None:
+            rng = np.random.RandomState(DEFAULT_SEED)
+        self.rng = rng
+
+    def __call__(self, shape):
+        std = self.gain*(1. / (shape[0]))**0.5
+        return self.rng.normal(loc=0., scale=std, size=shape)

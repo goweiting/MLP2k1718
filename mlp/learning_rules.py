@@ -124,9 +124,7 @@ class MomentumLearningRule(GradientDescentLearningRule):
 
     def initialise(self, params):
         """Initialises the state of the learning rule for a set or parameters.
-
         This must be called before `update_params` is first called.
-
         Args:
             params: A list of the parameters to be optimised. Note these will
                 be updated *in-place* to avoid reallocating arrays on each
@@ -139,7 +137,6 @@ class MomentumLearningRule(GradientDescentLearningRule):
 
     def reset(self):
         """Resets any additional state variables to their intial values.
-
         For this learning rule this corresponds to zeroing all the momenta.
         """
         for mom in zip(self.moms):
@@ -147,10 +144,8 @@ class MomentumLearningRule(GradientDescentLearningRule):
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.
-
         All parameter updates are performed using in-place operations and so
         nothing is returned.
-
         Args:
             grads_wrt_params: A list of gradients of the scalar loss function
                 with respect to each of the parameters passed to `initialise`
@@ -164,12 +159,8 @@ class MomentumLearningRule(GradientDescentLearningRule):
 
 class AdamLearningRule(GradientDescentLearningRule):
     """Adaptive moments (Adam) learning rule.
-    First-order gradient-descent based learning rule which uses adaptive
-    estimates of first and second moments of the parameter gradients to
-    calculate the parameter updates.
-    References:
-      [1]: Adam: a method for stochastic optimisation
-           Kingma and Ba, 2015
+    Ref: 1. Adam: a method for stochastic optimisation, Kingma and Ba, 2015
+         2. http://ruder.io/optimizing-gradient-descent/index.html#adam 
     """
 
     def __init__(self, learning_rate=1e-3, beta_1=0.9, beta_2=0.999,
@@ -181,31 +172,24 @@ class AdamLearningRule(GradientDescentLearningRule):
                 the learning dynamic will be unstable and may diverge, while
                 if set too small learning will proceed very slowly.
             beta_1: Exponential decay rate for gradient first moment estimates.
-                This should be a scalar value in [0, 1]. The running gradient
-                first moment estimate is calculated using
-                `m_1 = beta_1 * m_1_prev + (1 - beta_1) * g`
-                 where `m_1_prev` is the previous estimate and `g` the current
-                 parameter gradients.
             beta_2: Exponential decay rate for gradient second moment
-                estimates. This should be a scalar value in [0, 1]. The run
-                gradient second moment estimate is calculated using
-                `m_2 = beta_2 * m_2_prev + (1 - beta_2) * g**2`
-                 where `m_2_prev` is the previous estimate and `g` the current
-                 parameter gradients.
+                estimates.
             epsilon: 'Softening' parameter to stop updates diverging when
                 second moment estimates are close to zero. Should be set to
                 a small positive value.
+            Reference: http://ruder.io/optimizing-gradient-descent/index.html#adam
         """
         super(AdamLearningRule, self).__init__(learning_rate)
-        assert beta_1 >= 0. and beta_1 <= 1., 'beta_1 should be in [0, 1].'
-        assert beta_2 >= 0. and beta_2 <= 1., 'beta_2 should be in [0, 2].'
         assert epsilon > 0., 'epsilon should be > 0.'
+        assert beta_1 >= 0. and beta_1 <= 1., 'beta_1 not in [0, 1].'
+        assert beta_2 >= 0. and beta_2 <= 1., 'beta_2 not in [0, 1].'
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.epsilon = epsilon
 
     def initialise(self, params):
-        """Initialises the state of the learning rule for a set or parameters.
+        """
+        Initialises the state of the learning rule for a set or parameters.
         This must be called before `update_params` is first called.
         Args:
             params: A list of the parameters to be optimised. Note these will
@@ -213,23 +197,24 @@ class AdamLearningRule(GradientDescentLearningRule):
                 update.
         """
         super(AdamLearningRule, self).initialise(params)
-        self.moms_1 = []
+        self.m = []
+        self.v = []
+        # These are initialise to zeroes (also makes them bias to 0)
         for param in self.params:
-            self.moms_1.append(np.zeros_like(param))
-        self.moms_2 = []
-        for param in self.params:
-            self.moms_2.append(np.zeros_like(param))
-        self.step_count = 0
+            self.m.append(np.zeros_like(param))
+            self.v.append(np.zeros_like(param))
+        self.step_count = 0 
 
     def reset(self):
-        """Resets any additional state variables to their initial values.
+        """
+        Resets any additional state variables to their initial values.
         For this learning rule this corresponds to zeroing the estimates of
         the first and second moments of the gradients.
         """
-        for mom_1, mom_2 in zip(self.moms_1, self.moms_2):
-            mom_1 *= 0.
-            mom_2 *= 0.
-        self.step_count = 0
+        for _m, _v in zip(self.m, self.v):
+            _m *= 0.
+            _v *= 0.
+        self.step_count = 0 
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.
@@ -239,20 +224,25 @@ class AdamLearningRule(GradientDescentLearningRule):
             grads_wrt_params: A list of gradients of the scalar loss function
                 with respect to each of the parameters passed to `initialise`
                 previously, with this list expected to be in the same order.
+                [1]: Get gradients w.r.t. stochastic objective at timestep t)
         """
-        for param, mom_1, mom_2, grad in zip(
-                self.params, self.moms_1, self.moms_2, grads_wrt_params):
-            mom_1 *= self.beta_1
-            mom_1 += (1. - self.beta_1) * grad
-            mom_2 *= self.beta_2
-            mom_2 += (1. - self.beta_2) * grad**2
+        self.step_count += 1 
+        for param, m, v, grad in zip(
+                self.params, self.m, self.v, grads_wrt_params):
+            # Begin algorithm 1:
+            ## Update biased first moment estimate
+            m *= self.beta_1 
+            m += (1. - self.beta_1) * grad
+            ## Update biased second raw moment estimate
+            v *= self.beta_2
+            v += (1. - self.beta_2) * grad**2
+            # using the more computationallly efficient on as stated in the paper section 2:
             alpha_t = (
                 self.learning_rate *
-                (1. - self.beta_2**(self.step_count + 1))**0.5 /
-                (1. - self.beta_1**(self.step_count + 1))
+                (1. - self.beta_2**(self.step_count)) ** .5 /
+                (1. - self.beta_1**(self.step_count))
             )
-            param -= alpha_t * mom_1 / (mom_2**0.5 + self.epsilon)
-        self.step_count += 1
+            param -= alpha_t * m / (v**0.5 + self.epsilon)
 
 
 class RMSPropLearningRule(GradientDescentLearningRule):
@@ -298,17 +288,17 @@ class RMSPropLearningRule(GradientDescentLearningRule):
                 update.
         """
         super(RMSPropLearningRule, self).initialise(params)
-        self.moms_2 = []
+        self.m = []
         for param in self.params:
-            self.moms_2.append(np.zeros_like(param))
+            self.m.append(np.zeros_like(param))
 
     def reset(self):
         """Resets any additional state variables to their initial values.
         For this learning rule this corresponds to zeroing all gradient
         second moment estimates.
         """
-        for mom_2 in self.moms_2:
-            mom_2 *= 0.
+        for _m in self.m:
+            _m *= 0.
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.
@@ -319,9 +309,8 @@ class RMSPropLearningRule(GradientDescentLearningRule):
                 with respect to each of the parameters passed to `initialise`
                 previously, with this list expected to be in the same order.
         """
-        for param, mom_2, grad in zip(
-                self.params, self.moms_2, grads_wrt_params):
-            mom_2 *= self.beta
-            mom_2 += (1. - self.beta) * grad**2
-            param -= (self.learning_rate * grad /
-                      (mom_2 + self.epsilon)**0.5)
+        for param, m, grad in zip(
+                self.params, self.m, grads_wrt_params):
+            m *= self.beta
+            m += (1. - self.beta) * grad**2
+            param -= (self.learning_rate * grad / (m**.5 + self.epsilon))
