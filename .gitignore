@@ -1,3 +1,6 @@
+# NOHUP
+nohup.out
+
 #dropbox stuff
 *.dropbox*
 
