@@ -394,7 +394,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         # Adoped from : http://cthorey.github.io./backpropagation/
 
         N, D = outputs.shape
-        mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
+        [mu,var] = self.cache[-1] # the most recent one
         xmu = inputs - mu
         dh = (1. / N) * self.gamma * (var + self.epsilon) ** (-1. / 2.) * (
             N * grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) - xmu * (var + self.epsilon) ** (-1.) * np.sum(
@@ -414,7 +414,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             `[grads_wrt_gamma, grads_wrt_beta]`.
         """
         N, D = inputs.shape
-        mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
+        [mu,var] = self.cache[-1]
         xmu = inputs - mu
         dbeta = np.sum(grads_wrt_outputs, axis=0)
         dgamma = np.sum(xmu * (var + self.epsilon) ** (-1. / 2.) * grads_wrt_outputs, axis=0)
