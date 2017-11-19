@@ -342,39 +342,36 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
     def __init__(self, input_dim, rng=None):
         """Initialises a parameterised affine layer.
-
         Args:
-            input_dim (int): Dimension of inputs to the layer.
-            output_dim (int): Dimension of the layer outputs.
-            weights_initialiser: Initialiser for the weight parameters.
-            biases_initialiser: Initialiser for the bias parameters.
-            weights_penalty: Weights-dependent penalty term (regulariser) or
-                None if no regularisation is to be applied to the weights.
-            biases_penalty: Biases-dependent penalty term (regulariser) or
-                None if no regularisation is to be applied to the biases.
+            input_dim : Dimension of the input layer
         """
         super(BatchNormalizationLayer, self).__init__(rng)
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.cache = None
+        self.cache = [] # Store parameters for each training minibatch
         self.input_dim = input_dim
 
     def fprop(self, inputs, stochastic=True):
         """Forward propagates inputs through a layer."""
-        # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-        N, D = inputs.shape
-        mu = 1. / N * np.sum(inputs, axis=0)
-        # Subtract mean vector for all the training example in this batch:
-        xmu = inputs - mu
-        # calculating variance
-        var = 1. / N * np.sum(xmu ** 2, axis=0)
-        # normalisation of inputs
-        xhat = xmu * (1. / np.sqrt(var + self.epsilon))
-        # output:
+        if stochastic: # TRAINING
+            # calculate the mean for each batch. input is of shape (batch_size, input_dim)
+            N, D = inputs.shape
+            mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
+            xmu = inputs - mu
+            var = 1. / N * np.sum(xmu ** 2, axis=0) # variance of each feature
+            xhat = xmu * (1. / np.sqrt(var + self.epsilon)) # normalise inputs
+            self.cache.append([mu,var])# store mean and variance for inference  
+
+        else: # INFERENCE!
+            # using the population statistics instead:
+            m = len(self.cache)
+            mu_mu , mu_var = np.mean(self.cache)
+            mu_var *= m/(m-1.) # population variance
+            xhat = (inputs - mu_mu) * (mu_var + self.epsilon)**(-1./2.)
+        
+        # Same step for both:
         output = self.gamma * xhat + self.beta
-        # store in cache:
-        self.cache = (xhat, mu, xmu, var)
         return output
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
@@ -395,16 +392,13 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             (batch_size, input_dim).
         """
         # Adoped from : http://cthorey.github.io./backpropagation/
-        (xhat, mu, xmu, var) = self.cache
+
         N, D = outputs.shape
-        dbeta = np.sum(grads_wrt_outputs, axis=0)
-        dgamma = np.sum((inputs - mu) * (var + self.epsilon) ** (-1. / 2.) * grads_wrt_outputs, axis=0)
+        mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
+        xmu = inputs - mu
         dh = (1. / N) * self.gamma * (var + self.epsilon) ** (-1. / 2.) * (
             N * grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) - xmu * (var + self.epsilon) ** (-1.) * np.sum(
                 grads_wrt_outputs * xmu, axis=0))
-
-        # set the values of the parameters
-        self.params(self.params() + [dgamma, dbeta])
         return dh
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
@@ -417,10 +411,15 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
         Returns:
             list of arrays of gradients with respect to the layer parameters
-            `[grads_wrt_weights, grads_wrt_biases]`.
+            `[grads_wrt_gamma, grads_wrt_beta]`.
         """
-        raise NotImplementedError
-
+        N, D = inputs.shape
+        mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
+        xmu = inputs - mu
+        dbeta = np.sum(grads_wrt_outputs, axis=0)
+        dgamma = np.sum(xmu * (var + self.epsilon) ** (-1. / 2.) * grads_wrt_outputs, axis=0)
+        return [dgamma, dbeta]
+    
     def params_penalty(self):
         """Returns the parameter dependent penalty term for this layer.
 
