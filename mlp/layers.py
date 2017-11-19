@@ -362,8 +362,20 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
     def fprop(self, inputs, stochastic=True):
         """Forward propagates inputs through a layer."""
-
-        raise NotImplementedError
+        # calculate the mean for each batch. input is of shape (batch_size, input_dim)
+        N, D = inputs.shape
+        mu = 1. / N * np.sum(inputs, axis=0)
+        # Subtract mean vector for all the training example in this batch:
+        xmu = inputs - mu
+        # calculating variance
+        var = 1. / N * np.sum(xmu ** 2, axis=0)
+        # normalisation of inputs
+        xhat = xmu * (1. / np.sqrt(var + self.epsilon))
+        # output:
+        output = self.gamma * xhat + self.beta
+        # store in cache:
+        self.cache = (xhat, mu, xmu, var)
+        return output
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -382,8 +394,18 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
+        # Adoped from : http://cthorey.github.io./backpropagation/
+        (xhat, mu, xmu, var) = self.cache
+        N, D = outputs.shape
+        dbeta = np.sum(grads_wrt_outputs, axis=0)
+        dgamma = np.sum((inputs - mu) * (var + self.epsilon) ** (-1. / 2.) * grads_wrt_outputs, axis=0)
+        dh = (1. / N) * self.gamma * (var + self.epsilon) ** (-1. / 2.) * (
+            N * grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) - xmu * (var + self.epsilon) ** (-1.) * np.sum(
+                grads_wrt_outputs * xmu, axis=0))
 
-        raise NotImplementedError
+        # set the values of the parameters
+        self.params(self.params() + [dgamma, dbeta])
+        return dh
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
@@ -695,25 +717,25 @@ class ELULayer(Layer):
         For inputs `x` and outputs `y` this corresponds to `y = max(0, x)`.
         """
         ## Clipping the inputs:
-        #inputs = np.where(np.isnan(inputs), 0., inputs) # since they wont be assign to 0 anyway
-        #inputs = np.where(np.isinf(inputs), 1e25, inputs)
-        #positive_inputs = np.maximum(inputs, 0.)
+        # inputs = np.where(np.isnan(inputs), 0., inputs) # since they wont be assign to 0 anyway
+        # inputs = np.where(np.isinf(inputs), 1e25, inputs)
+        # positive_inputs = np.maximum(inputs, 0.)
 
-        #negative_inputs = np.copy(inputs)
+        # negative_inputs = np.copy(inputs)
         ##negative_inputs[negative_inputs > 0.] = 0.
-        #negative_inputs = np.where(negative_inputs > 0., 0., negative_inputs)
-        #negative_inputs = self.alpha * (np.exp(negative_inputs) - 1.)
+        # negative_inputs = np.where(negative_inputs > 0., 0., negative_inputs)
+        # negative_inputs = self.alpha * (np.exp(negative_inputs) - 1.)
 
-        #outputs = positive_inputs + negative_inputs
+        # outputs = positive_inputs + negative_inputs
         ## Clipping the outputs:
-        #outputs = np.where(np.isnan(outputs), -1e-25, outputs)
-        #outputs = np.where(np.isinf(outputs), 1e25, outputs)
-        #return outputs
-        
+        # outputs = np.where(np.isnan(outputs), -1e-25, outputs)
+        # outputs = np.where(np.isinf(outputs), 1e25, outputs)
+        # return outputs
+
         positive_inputs = np.maximum(inputs, 0.)
 
         negative_inputs = np.copy(inputs)
-        negative_inputs[negative_inputs>0] = 0.
+        negative_inputs[negative_inputs > 0] = 0.
         negative_inputs = self.alpha * (np.exp(negative_inputs) - 1)
 
         outputs = positive_inputs + negative_inputs
@@ -726,32 +748,31 @@ class ELULayer(Layer):
         gradients with respect to the layer inputs.
         """
         ## Clipping:
-        #grads_wrt_outputs = np.where(np.isnan(grads_wrt_outputs), -1e-25, grads_wrt_outputs)
-        #grads_wrt_outputs = np.where(np.isinf(grads_wrt_outputs), 1e25, grads_wrt_outputs)
-        
+        # grads_wrt_outputs = np.where(np.isnan(grads_wrt_outputs), -1e-25, grads_wrt_outputs)
+        # grads_wrt_outputs = np.where(np.isinf(grads_wrt_outputs), 1e25, grads_wrt_outputs)
+
         ## positive_gradients = (outputs >= 0.) * grads_wrt_outputs
-        #positive_gradients = np.where(outputs >= 0., 1. ,0.) * grads_wrt_outputs
+        # positive_gradients = np.where(outputs >= 0., 1. ,0.) * grads_wrt_outputs
         ## outputs_to_use = (outputs < 0.) * outputs
-        #outputs_to_use = np.where(outputs < 0., 1., 0.) * outputs
-        #negative_gradients = (outputs_to_use + self.alpha)
+        # outputs_to_use = np.where(outputs < 0., 1., 0.) * outputs
+        # negative_gradients = (outputs_to_use + self.alpha)
         ## negative_gradients[outputs >= 0.] = 0.
-        #negative_gradients = np.where(outputs >= 0., 0., negative_gradients)
-        #negative_gradients = negative_gradients * grads_wrt_outputs
-        #gradients = positive_gradients + negative_gradients
-        
+        # negative_gradients = np.where(outputs >= 0., 0., negative_gradients)
+        # negative_gradients = negative_gradients * grads_wrt_outputs
+        # gradients = positive_gradients + negative_gradients
+
         ## Gradient clipping:
-        #gradients = np.where(np.isnan(gradients), -1e-25, gradients)
-        #gradients = np.where(np.isinf(gradients), 1e25, gradients)
-        
-        
+        # gradients = np.where(np.isnan(gradients), -1e-25, gradients)
+        # gradients = np.where(np.isinf(gradients), 1e25, gradients)
+
+
         positive_gradients = (outputs >= 0) * grads_wrt_outputs
         outputs_to_use = (outputs < 0) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
         negative_gradients[outputs >= 0] = 0.
         negative_gradients = negative_gradients * grads_wrt_outputs
         gradients = positive_gradients + negative_gradients
-        
-        
+
         return gradients
 
     def __repr__(self):
