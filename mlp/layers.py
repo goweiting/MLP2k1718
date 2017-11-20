@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Layer definitions.
 
-This module defines classes which encapsulate a single layer.
+This module defines classes which encapsulate a single layer.batch
 
 These layers map input activations to output activation with the `fprop`
 method and map gradients with repsect to outputs to gradients with respect to
@@ -354,9 +354,9 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
     def fprop(self, inputs, stochastic=True):
         """Forward propagates inputs through a layer."""
+        N, _ = inputs.shape
         if stochastic: # TRAINING
             # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-            N, D = inputs.shape
             mu = 1. / N * np.sum(inputs, axis=0) # Mean of each feature
             xmu = inputs - mu
             var = 1. / N * np.sum(xmu ** 2, axis=0) # variance of each feature
@@ -365,10 +365,9 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
         else: # INFERENCE!
             # using the population statistics instead:
-            m = len(self.cache)
-            mu_mu , mu_var = np.mean(self.cache)
-            mu_var *= m/(m-1.) # population variance
-            xhat = (inputs - mu_mu) * (mu_var + self.epsilon)**(-1./2.)
+            pop_mu , mu_var = np.mean(self.cache)
+            pop_var = N /( N-1.) * mu_var # population variance
+            xhat = (inputs - pop_mu) * (pop_var + self.epsilon)**(-1./2.)
         
         # Same step for both:
         output = self.gamma * xhat + self.beta
@@ -393,8 +392,8 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """
         # Adoped from : http://cthorey.github.io./backpropagation/
 
-        N, D = outputs.shape
-        [mu,var] = self.cache[-1] # the most recent one
+        N, _ = outputs.shape
+        [mu, var] = self.cache[-1] # the most recent one
         xmu = inputs - mu
         dh = (1. / N) * self.gamma * (var + self.epsilon) ** (-1. / 2.) * (
             N * grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) - xmu * (var + self.epsilon) ** (-1.) * np.sum(

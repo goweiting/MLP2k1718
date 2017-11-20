@@ -297,7 +297,8 @@ class RMSPropLearningRule(GradientDescentLearningRule):
         For this learning rule this corresponds to zeroing all gradient
         second moment estimates.
         """
-        self.m = np.multiply(self.m, 0.)
+        for _m in self.m:
+            _m *= 0.
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.
@@ -311,5 +312,5 @@ class RMSPropLearningRule(GradientDescentLearningRule):
         for param, m, grad in zip(
                 self.params, self.m, grads_wrt_params):
             m *= self.beta
-            m += (1. - self.beta) * grad**2
-            param -= (self.learning_rate * grad) / (m + self.epsilon)**.5
+            m += (1. - self.beta) * grad**2.
+            param -= self.learning_rate * grad / (m + self.epsilon)**.5
