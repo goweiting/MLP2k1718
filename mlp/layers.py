@@ -560,15 +560,19 @@ class ConvolutionalLayer(LayerWithParameters):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        N, d = inputs.shape
-        assert self.d0 * self.h0 * self.w0 == d, "incorrect declaration of input_dim"
+        #(N, d) = inputs.shape
+        #assert self.d0 * self.h0 * self.w0 == d, "incorrect declaration of input_dim"
 
         # IM2COL IMPLEMENTATION; REF:CS website
-        _input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
-        xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
+        #_input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
+        #xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
+        print(inputs)
+        xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
+        print(xCols)
         wCols = np.reshape(self.kernels, (self.d1, -1))
-        out = xCols * wCols + self.biases
-        out = out.reshape(self.d1, self.h1, self.w1, N)
+        print(wCols)
+        out = wCols @ xCols + np.reshape(self.biases, (self.d1, -1))
+        out = out.reshape(self.d1, self.h1, self.w1, inputs.shape[0])
         out = out.transpose(3, 0, 1, 2)
         return out
 
@@ -579,7 +583,9 @@ class ConvolutionalLayer(LayerWithParameters):
         assert (W + 2 * padding - field_height) % stride == 0
         out_height = (H + 2 * padding - field_height) / stride + 1
         out_width = (W + 2 * padding - field_width) / stride + 1
-
+        out_height = int(out_height)
+        out_width = int(out_width)
+        
         i0 = np.repeat(np.arange(field_height), field_width)
         i0 = np.tile(i0, C)
         i1 = stride * np.repeat(np.arange(out_height), out_width)
