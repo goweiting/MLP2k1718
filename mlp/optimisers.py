@@ -164,7 +164,7 @@ class EarlyStoppingOptimiser(object):
 
     def __init__(self, model, error, learning_rule, train_dataset,
                  valid_dataset=None, test_dataset=None,
-                 data_monitors=None, notebook=False, steps=3, patience=10):
+                 data_monitors=None, notebook=False, steps=3, patience=5):
         """Create a new optimiser instance.
 
         Args:
@@ -300,21 +300,42 @@ class EarlyStoppingOptimiser(object):
             recorded to their column index in the array.
         """
         start_train_time = time.time()
-        e_val = []  # stores the validation error for each epoch
-        run_stats = [list(self.get_epoch_stats().values())]  # THE FIRST EPOCH_STATS IS NEGLIGIBLE HERE@
+        stats = self.get_epoch_stats()
+        e_val = [stats['error(valid)']]  # stores the validation error for each epoch
+        run_stats = [list(stats.values())]  # THE FIRST EPOCH_STATS IS NEGLIGIBLE HERE
         # with self.tqdm_progress(total=num_epochs) as progress_bar:
         #     progress_bar.set_description("Experiment Progress")
-        for epoch in range(1, num_epochs + 1):
+        early_stop = False
+        #for epoch in range(1, num_epochs + 1):
+        epoch = 0
+        while not early_stop and epoch <= num_epochs:
+            epoch += 1
             start_time = time.time()
             self.do_training_epoch()
             epoch_time = time.time() - start_time
 
             # DO EARLY STOPPING MONITORING:
             stats = self.get_epoch_stats()
-            print(stats) # DEBUG
-            epoch_train_err = stats['error(train)'][-1]
-            epoch_va_error = stats['error(valid)'][-1]
-
+            e_val.append(stats['error(valid)'])
+            
+            if epoch > self.patience * self.steps:
+                # Start checking UP from this epoch:
+                _epoch = epoch
+                for i in range(self.steps):
+                    # compare s successive strips
+                    
+                    prev = _epoch - self.patience
+                    if e_val[_epoch] > e_val[prev]:
+                        logger.info('UP{}: error(valid) at {} = {:.2e} > at {} = {:.2e}'.format(i+1, _epoch, e_val[_epoch], prev, e_val[prev]))
+                        _epoch = prev
+                        if i == self.steps-1:
+                            # STOP!
+                            logger.info('EARLY STOPPING')
+                            early_stop = True
+                    else:
+                        # No point checking since require iff
+                        break
+                    
             # Save the epoch stats:
             self.log_stats(epoch, epoch_time, stats)
             run_stats.append(list(stats.values()))
@@ -322,4 +343,5 @@ class EarlyStoppingOptimiser(object):
 
         finish_train_time = time.time()
         total_train_time = finish_train_time - start_train_time
-        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time
+        # RETURN THE EARLY STOPPED EPOCH TOO:
+        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time, epoch 
