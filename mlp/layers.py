@@ -654,7 +654,6 @@ class ConvolutionalLayer(LayerWithParameters):
         k, i, j = self.get_im2col_indices(x.shape)
 
         cols = x_padded[:, k, i, j]
-        C = x.shape[1]
         cols = cols.transpose(1, 2, 0).reshape(self.f1 * self.f2 * self.d0, -1)
         return cols
 
@@ -705,6 +704,19 @@ class ConvolutionalLayer(LayerWithParameters):
                         self.input_dim_1, self.input_dim_2, self.kernel_dim_1,
                         self.kernel_dim_2)
         )
+
+
+class MaxPoolingLayer(LayerWithParameters):
+    """
+    Implements the maxpooling layer
+    """
+
+    def __init__(self, num_input_channel, input_dim_1, input_dim_2, extent=2, stride=2):
+        """
+        Creates a Maxpooling layer that take into
+        :param extent: the spatial extent, F
+        :param stride: the stride S
+        """
 
 
 class ReluLayer(Layer):
