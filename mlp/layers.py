@@ -566,7 +566,7 @@ class ConvolutionalLayer(LayerWithParameters):
         # IM2COL IMPLEMENTATION; REF:CS website
         # _input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
         # xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
-        
+
         # convert inputs into columns for
         xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
         # Convert kernels into column vectors
@@ -618,7 +618,7 @@ class ConvolutionalLayer(LayerWithParameters):
         (xCols, out) = self.cache
         _grads_wrt_biases = np.sum(grads_wrt_outputs, axis=(0, 2, 3))
         grads_wrt_biases = _grads_wrt_biases.reshape(self.d1, )
-        
+
         _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
         _grads_wrt_kernels = _grads_wrt_outputs @ xCols.T
         grads_wrt_kernels = _grads_wrt_kernels.reshape(self.kernels_shape)
