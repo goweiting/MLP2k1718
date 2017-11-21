@@ -306,42 +306,42 @@ class EarlyStoppingOptimiser(object):
         # with self.tqdm_progress(total=num_epochs) as progress_bar:
         #     progress_bar.set_description("Experiment Progress")
         early_stop = False
-        #for epoch in range(1, num_epochs + 1):
         epoch = 0
         while not early_stop and epoch <= num_epochs:
             epoch += 1
             start_time = time.time()
             self.do_training_epoch()
             epoch_time = time.time() - start_time
+            self.log_stats(epoch, epoch_time, stats)  # PRINT THE STATS
 
             # DO EARLY STOPPING MONITORING:
             stats = self.get_epoch_stats()
             e_val.append(stats['error(valid)'])
-            
+
             if epoch > self.patience * self.steps:
                 # Start checking UP from this epoch:
                 _epoch = epoch
                 for i in range(self.steps):
                     # compare s successive strips
-                    
+
                     prev = _epoch - self.patience
                     if e_val[_epoch] > e_val[prev]:
-                        logger.info('UP{}: error(valid) at {} = {:.2e} > at {} = {:.2e}'.format(i+1, _epoch, e_val[_epoch], prev, e_val[prev]))
+                        logger.info(
+                            'UP{}: error(valid) at {} = {:.2e} > at {} = {:.2e}'.format(i + 1, _epoch, e_val[_epoch],
+                                                                                        prev, e_val[prev]))
                         _epoch = prev
-                        if i == self.steps-1:
-                            # STOP!
-                            logger.info('EARLY STOPPING')
+                        if i == self.steps - 1:
+                            logger.info('EARLY STOPPING')  # STOP!
                             early_stop = True
                     else:
-                        # No point checking since require iff
+                        # No point checking since require all successive strips to satisfy the condition
                         break
-                    
+
             # Save the epoch stats:
-            self.log_stats(epoch, epoch_time, stats)
             run_stats.append(list(stats.values()))
             # progress_bar.update(1)
 
         finish_train_time = time.time()
         total_train_time = finish_train_time - start_train_time
         # RETURN THE EARLY STOPPED EPOCH TOO:
-        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time, epoch 
+        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time, epoch
