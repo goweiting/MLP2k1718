@@ -560,57 +560,25 @@ class ConvolutionalLayer(LayerWithParameters):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        #(N, d) = inputs.shape
-        #assert self.d0 * self.h0 * self.w0 == d, "incorrect declaration of input_dim"
+        # (N, d) = inputs.shape
+        # assert self.d0 * self.h0 * self.w0 == d, "incorrect declaration of input_dim"
 
         # IM2COL IMPLEMENTATION; REF:CS website
-        #_input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
-        #xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
-        print(inputs)
+        # _input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
+        # xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
+
+        # convert inputs into columns for
         xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
-        print(xCols)
+        # Convert kernels into column vectors
         wCols = np.reshape(self.kernels, (self.d1, -1))
-        print(wCols)
+        # cross-correlation:
         out = wCols @ xCols + np.reshape(self.biases, (self.d1, -1))
+        # reshape the output for each feature map:
         out = out.reshape(self.d1, self.h1, self.w1, inputs.shape[0])
         out = out.transpose(3, 0, 1, 2)
+
+        self.cache = xCols
         return out
-
-    def get_im2col_indices(self, x_shape, field_height, field_width, padding=0, stride=1):
-        # First figure out what the size of the output should be
-        N, C, H, W = x_shape  # N == NONE
-        assert (H + 2 * padding - field_height) % stride == 0
-        assert (W + 2 * padding - field_height) % stride == 0
-        out_height = (H + 2 * padding - field_height) / stride + 1
-        out_width = (W + 2 * padding - field_width) / stride + 1
-        out_height = int(out_height)
-        out_width = int(out_width)
-        
-        i0 = np.repeat(np.arange(field_height), field_width)
-        i0 = np.tile(i0, C)
-        i1 = stride * np.repeat(np.arange(out_height), out_width)
-        j0 = np.tile(np.arange(field_width), field_height * C)
-        j1 = stride * np.tile(np.arange(out_width), out_height)
-        i = i0.reshape(-1, 1) + i1.reshape(1, -1)
-        j = j0.reshape(-1, 1) + j1.reshape(1, -1)
-
-        k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
-
-        return (k, i, j)
-
-    def im2col_indices(self, x, field_height, field_width, padding=0, stride=1):
-        """ An implementation of im2col based on some fancy indexing """
-        # Zero-pad the input
-        p = padding
-        x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
-
-        k, i, j = self.get_im2col_indices(x.shape, field_height, field_width, padding,
-                                          stride)
-
-        cols = x_padded[:, k, i, j]
-        C = x.shape[1]
-        cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
-        return cols
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -629,9 +597,12 @@ class ConvolutionalLayer(LayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        # Pad the grads_wrt_outputs
-
-        raise NotImplementedError
+        _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
+        _kernels = self.kernels.reshape(self.d1, -1)
+        _output = _kernels @ _grads_wrt_outputs
+        output = self.col2im_indices(_output, inputs.shape, self.f1, self.f2, padding=0, stride=1)
+        assert output.shape == inputs.shape, "error transforming from column to matrices!"
+        return output
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
@@ -639,13 +610,72 @@ class ConvolutionalLayer(LayerWithParameters):
             inputs: array of inputs to layer of shape (batch_size, input_dim)
             grads_wrt_to_outputs: array of gradients with respect to the layer
                 outputs of shape
-                (batch_size, num_output-_channels, output_dim_1, output_dim_2).
+                (batch_size, num_output_channels, output_dim_1, output_dim_2).
         Returns:
             list of arrays of gradients with respect to the layer parameters
             `[grads_wrt_kernels, grads_wrt_biases]`.
         """
+        xCols = self.cache
+        _grads_wrt_biases = np.sum(grads_wrt_outputs, axis=(0, 2, 3))
+        grads_wrt_biases = _grads_wrt_biases.reshape(self.d1, -1)
 
-        raise NotImplementedError
+        _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
+        _grads_wrt_kernels = _grads_wrt_outputs @ xCols.T
+        grads_wrt_kernels = _grads_wrt_kernels.reshape(self.kernels_shape)
+
+        return [grads_wrt_kernels, grads_wrt_biases]
+
+    ### HELPER FUNCTIONS ADAPTED FROM CS231N: https://github.com/huyouare/CS231n/blob/master/assignment2/cs231n/im2col.py ###
+    def get_im2col_indices(self, x_shape, field_height, field_width, padding=0, stride=1):
+        # First figure out what the size of the output should be
+        N, C, H, W = x_shape  # N == NONE
+        assert (H + 2 * padding - field_height) % stride == 0
+        assert (W + 2 * padding - field_height) % stride == 0
+        out_height = (H + 2 * padding - field_height) / stride + 1
+        out_width = (W + 2 * padding - field_width) / stride + 1
+        out_height = int(out_height)
+        out_width = int(out_width)
+
+        i0 = np.repeat(np.arange(field_height), field_width)
+        i0 = np.tile(i0, C)
+        i1 = stride * np.repeat(np.arange(out_height), out_width)
+        j0 = np.tile(np.arange(field_width), field_height * C)
+        j1 = stride * np.tile(np.arange(out_width), out_height)
+        i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+        j = j0.reshape(-1, 1) + j1.reshape(1, -1)
+
+        k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
+
+        return (k, i, j)
+
+    def im2col_indices(self, x, field_height, field_width, padding=0, stride=1):
+        """ An implementation of im2col based on some fancy indexing """
+        p = padding
+        x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
+
+        k, i, j = self.get_im2col_indices(x.shape, field_height, field_width, padding,
+                                          stride)
+
+        cols = x_padded[:, k, i, j]
+        C = x.shape[1]
+        cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
+        return cols
+
+    def col2im_indices(self, cols, x_shape, field_height=3, field_width=3, padding=1,
+                       stride=1):
+        """ An implementation of col2im based on fancy indexing and np.add.at """
+        N, C, H, W = x_shape
+        H_padded, W_padded = H + 2 * padding, W + 2 * padding
+        x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
+        k, i, j = self.get_im2col_indices(x_shape, field_height, field_width, padding,
+                                          stride)
+        cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
+        cols_reshaped = cols_reshaped.transpose(2, 0, 1)
+        np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
+        if padding == 0:
+            return x_padded
+
+        return x_padded[:, :, padding:-padding, padding:-padding]
 
     def params_penalty(self):
         """Returns the parameter dependent penalty term for this layer.
