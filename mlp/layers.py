@@ -501,6 +501,7 @@ class ConvolutionalLayer(LayerWithParameters):
     def __init__(self, num_input_channels, num_output_channels,
                  input_dim_1, input_dim_2,
                  kernel_dim_1, kernel_dim_2,
+                 padding=0, stride=1,
                  kernels_init=init.UniformInit(-0.01, 0.01),
                  biases_init=init.ConstantInit(0.),
                  kernels_penalty=None, biases_penalty=None):
@@ -528,18 +529,23 @@ class ConvolutionalLayer(LayerWithParameters):
             biases_penalty: Biases-dependent penalty term (regulariser) or
                 None if no regularisation is to be applied to the biases.
         """
-        self.d0 = num_input_channels
-        self.d1 = num_output_channels
+        self.d0 = int(num_input_channels)
+        self.d1 = int(num_output_channels)
         # INPUTS
-        self.h0 = input_dim_1
-        self.w0 = input_dim_2
+        self.h0 = int(input_dim_1)
+        self.w0 = int(input_dim_2)
         # KERNELS
-        self.f1 = kernel_dim_1
-        self.f2 = kernel_dim_2
+        self.f1 = int(kernel_dim_1)
+        self.f2 = int(kernel_dim_2)
         # OUTPUTS
-        self.h1 = self.h0 - self.f1 + 1  # NO PADDING
-        self.w1 = self.w0 - self.f2 + 1  # NO PADDING
+        ## CHECK THE DIMENSIONS:
+        assert (input_dim_1 + 2 * padding - kernel_dim_1) % stride == 0
+        assert (input_dim_2 + 2 * padding - kernel_dim_2) % stride == 0
+        self.h1 = int((input_dim_1 + 2 * padding - kernel_dim_1) * stride ** -1) + 1  # output_dim_1
+        self.w1 = int((input_dim_2 + 2 * padding - kernel_dim_2) * stride ** -1) + 1  # output_dim_2
 
+        self.padding = int(padding)
+        self.stride = int(stride)
         self.kernels_init = kernels_init
         self.biases_init = biases_init
         self.kernels_shape = (self.d1, self.d0, self.f1, self.f2)
@@ -568,7 +574,7 @@ class ConvolutionalLayer(LayerWithParameters):
         # xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
 
         # convert inputs into columns for
-        xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
+        xCols = self.im2col_indices(inputs)
         # Convert kernels into column vectors
         wCols = np.reshape(self.kernels, (self.d1, -1))
         # cross-correlation:
@@ -600,7 +606,7 @@ class ConvolutionalLayer(LayerWithParameters):
         _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
         _kernels = self.kernels.reshape(self.d1, -1)
         _output = _kernels.T @ _grads_wrt_outputs
-        output = self.col2im_indices(_output, inputs.shape, self.f1, self.f2, padding=0, stride=1)
+        output = self.col2im_indices(_output, inputs.shape)
         assert output.shape == inputs.shape, "error transforming from column to matrices!"
         return output
 
@@ -626,56 +632,46 @@ class ConvolutionalLayer(LayerWithParameters):
         return [grads_wrt_kernels, grads_wrt_biases]
 
     ### HELPER FUNCTIONS ADAPTED FROM CS231N: https://github.com/huyouare/CS231n/blob/master/assignment2/cs231n/im2col.py ###
-    def get_im2col_indices(self, x_shape, field_height, field_width, padding=0, stride=1):
+    def get_im2col_indices(self, x_shape):
         # First figure out what the size of the output should be
-        N, C, H, W = x_shape  # N == NONE
-        assert (H + 2 * padding - field_height) % stride == 0
-        assert (W + 2 * padding - field_height) % stride == 0
-        out_height = (H + 2 * padding - field_height) / stride + 1
-        out_width = (W + 2 * padding - field_width) / stride + 1
-        out_height = int(out_height)
-        out_width = int(out_width)
-
-        i0 = np.repeat(np.arange(field_height), field_width)
-        i0 = np.tile(i0, C)
-        i1 = stride * np.repeat(np.arange(out_height), out_width)
-        j0 = np.tile(np.arange(field_width), field_height * C)
-        j1 = stride * np.tile(np.arange(out_width), out_height)
+        i0 = np.repeat(np.arange(self.f1), self.f2)
+        i0 = np.tile(i0, self.d0)
+        i1 = self.stride * np.repeat(np.arange(self.h1), self.w1)
+        j0 = np.tile(np.arange(self.f2), self.f1 * self.d0)
+        j1 = self.stride * np.tile(np.arange(self.w1), self.h1)
         i = i0.reshape(-1, 1) + i1.reshape(1, -1)
         j = j0.reshape(-1, 1) + j1.reshape(1, -1)
 
-        k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
+        k = np.repeat(np.arange(self.d0), self.f1 * self.f2).reshape(-1, 1)
 
         return (k, i, j)
 
-    def im2col_indices(self, x, field_height, field_width, padding=0, stride=1):
+    def im2col_indices(self, x):
         """ An implementation of im2col based on some fancy indexing """
-        p = padding
+        p = self.padding
         x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
 
-        k, i, j = self.get_im2col_indices(x.shape, field_height, field_width, padding,
-                                          stride)
+        k, i, j = self.get_im2col_indices(x.shape)
 
         cols = x_padded[:, k, i, j]
         C = x.shape[1]
-        cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
+        cols = cols.transpose(1, 2, 0).reshape(self.f1 * self.f2 * self.d0, -1)
         return cols
 
-    def col2im_indices(self, cols, x_shape, field_height=3, field_width=3, padding=1,
-                       stride=1):
+    def col2im_indices(self, cols, x_shape):
         """ An implementation of col2im based on fancy indexing and np.add.at """
         N, C, H, W = x_shape
-        H_padded, W_padded = H + 2 * padding, W + 2 * padding
+        H_padded, W_padded = H + 2 * self.padding, W + 2 * self.padding
         x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
-        k, i, j = self.get_im2col_indices(x_shape, field_height, field_width, padding,
-                                          stride)
-        cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
+        k, i, j = self.get_im2col_indices(x_shape)
+        cols_reshaped = cols.reshape(C * self.f1 * self.f2, -1, N)
         cols_reshaped = cols_reshaped.transpose(2, 0, 1)
         np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
-        if padding == 0:
+        if self.padding == 0:
             return x_padded
-
-        return x_padded[:, :, padding:-padding, padding:-padding]
+        else:
+            padding = self.padding
+            return x_padded[:, :, padding:-padding, padding:-padding]
 
     def params_penalty(self):
         """Returns the parameter dependent penalty term for this layer.
