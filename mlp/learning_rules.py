@@ -203,7 +203,7 @@ class AdamLearningRule(GradientDescentLearningRule):
         for param in self.params:
             self.m.append(np.zeros_like(param))
             self.v.append(np.zeros_like(param))
-        self.step_count = 0 
+        self.step_count = 0
 
     def reset(self):
         """
@@ -214,7 +214,7 @@ class AdamLearningRule(GradientDescentLearningRule):
         for _m, _v in zip(self.m, self.v):
             _m *= 0.
             _v *= 0.
-        self.step_count = 0 
+        self.step_count = 0
 
     def update_params(self, grads_wrt_params):
         """Applies a single update to all parameters.
@@ -226,23 +226,26 @@ class AdamLearningRule(GradientDescentLearningRule):
                 previously, with this list expected to be in the same order.
                 [1]: Get gradients w.r.t. stochastic objective at timestep t)
         """
-        self.step_count += 1 
+        self.step_count += 1
         for param, m, v, grad in zip(
                 self.params, self.m, self.v, grads_wrt_params):
             # Begin algorithm 1:
             ## Update biased first moment estimate
-            m *= self.beta_1 
+            m *= self.beta_1
             m += (1. - self.beta_1) * grad
             ## Update biased second raw moment estimate
             v *= self.beta_2
-            v += (1. - self.beta_2) * grad**2
-            # using the more computationallly efficient on as stated in the paper section 2:
-            alpha_t = (
-                self.learning_rate *
-                (1. - self.beta_2**(self.step_count)) ** .5 /
-                (1. - self.beta_1**(self.step_count))
-            )
-            param -= alpha_t * m / (v**0.5 + self.epsilon)
+            v += (1. - self.beta_2) * grad ** 2
+            # using the more computationally efficient on as stated in the paper section 2:
+            # alpha_t = (
+            #     self.learning_rate *
+            #     ((1. - self.beta_2 ** self.step_count) ** .5) *
+            #     ((1. - self.beta_1 ** self.step_count) ** -1.)
+            # )
+            # param -= alpha_t * m * ((v ** .5 + self.epsilon) ** -1.)
+            m_hat = m * (1 - self.beta_1 ** self.step_count) ** -1.
+            v_hat = v * (1 - self.beta_2 ** self.step_count) ** -1.
+            param -= self.learning_rate * m_hat * (v_hat ** .5 + self.epsilon) ** (-1.)
 
 
 class RMSPropLearningRule(GradientDescentLearningRule):
@@ -312,5 +315,5 @@ class RMSPropLearningRule(GradientDescentLearningRule):
         for param, m, grad in zip(
                 self.params, self.m, grads_wrt_params):
             m *= self.beta
-            m += (1. - self.beta) * grad**2.
-            param -= self.learning_rate * grad / (m + self.epsilon)**.5
+            m += (1. - self.beta) * grad ** 2.
+            param -= self.learning_rate * grad / (m + self.epsilon) ** .5
