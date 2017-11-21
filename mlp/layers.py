@@ -566,7 +566,7 @@ class ConvolutionalLayer(LayerWithParameters):
         # IM2COL IMPLEMENTATION; REF:CS website
         # _input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
         # xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
-
+        
         # convert inputs into columns for
         xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
         # Convert kernels into column vectors
@@ -577,7 +577,7 @@ class ConvolutionalLayer(LayerWithParameters):
         out = out.reshape(self.d1, self.h1, self.w1, inputs.shape[0])
         out = out.transpose(3, 0, 1, 2)
 
-        self.cache = xCols
+        self.cache = (xCols, out)
         return out
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
@@ -599,7 +599,7 @@ class ConvolutionalLayer(LayerWithParameters):
         """
         _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
         _kernels = self.kernels.reshape(self.d1, -1)
-        _output = _kernels @ _grads_wrt_outputs
+        _output = _kernels.T @ _grads_wrt_outputs
         output = self.col2im_indices(_output, inputs.shape, self.f1, self.f2, padding=0, stride=1)
         assert output.shape == inputs.shape, "error transforming from column to matrices!"
         return output
@@ -615,10 +615,10 @@ class ConvolutionalLayer(LayerWithParameters):
             list of arrays of gradients with respect to the layer parameters
             `[grads_wrt_kernels, grads_wrt_biases]`.
         """
-        xCols = self.cache
+        (xCols, out) = self.cache
         _grads_wrt_biases = np.sum(grads_wrt_outputs, axis=(0, 2, 3))
-        grads_wrt_biases = _grads_wrt_biases.reshape(self.d1, -1)
-
+        grads_wrt_biases = _grads_wrt_biases.reshape(self.d1, )
+        
         _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
         _grads_wrt_kernels = _grads_wrt_outputs @ xCols.T
         grads_wrt_kernels = _grads_wrt_kernels.reshape(self.kernels_shape)
