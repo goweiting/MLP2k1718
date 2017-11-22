@@ -120,10 +120,24 @@ model = MultipleLayerModel([
         stride=1),
     MaxPoolingLayer(
         num_input_channels=5, input_dim_1=24, input_dim_2=24, extent=2),
-    ReshapeLayer((12 * 12 * 5,)),
-    AffineLayer(12 * 12 * 5, hidden_dim, weights_init, biases_init),
+    ReshapeLayer(output_shape=(12 * 12 * 5,)),
     ReluLayer(),
-    AffineLayer(hidden_dim, output_dim, weights_init, biases_init)
+    ReshapeLayer(output_shape=(5,12,12)),
+    ConvolutionalLayer(
+        num_input_channels=5,
+        num_output_channels=10,
+        input_dim_1=12,
+        input_dim_2=12,
+        kernel_dim_1=5,
+        kernel_dim_2=5,
+        padding=0,
+        stride=1),
+    MaxPoolingLayer(
+        num_input_channels=10, input_dim_1=8, input_dim_2=8, extent=2),
+    ReshapeLayer(output_shape=(4 * 4 * 10,)),
+    AffineLayer(4*4*10, output_dim, weights_init, biases_init),
+    ReluLayer(),
+    AffineLayer(output_dim, output_dim, weights_init, biases_init)
 ])
 
 error = CrossEntropyLogSoftmaxError()
@@ -144,4 +158,4 @@ trial1 = train_model_and_plot_stats(
 
 import pickle as pkl
 
-pkl.dump(trial1, open('trial1.pkl', 'wb'), protocol=-1)
+pkl.dump(trial1, open('BASELINE.pkl', 'wb'), protocol=-1)
