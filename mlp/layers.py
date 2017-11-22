@@ -340,7 +340,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, rng=None):
+    def __init__(self, input_dim, rng=None, momentum=None):
         """Initialises a parameterised affine layer.
         Args:
             input_dim : Dimension of the input layer
@@ -349,25 +349,36 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.cache = []  # Store parameters for each training minibatch
+        self.momentum = .9 if None else momentum # fix at .9
+        self.cache = None
         self.input_dim = input_dim
 
     def fprop(self, inputs, stochastic=True):
-        """Forward propagates inputs through a layer."""
-        N, _ = inputs.shape
-        if stochastic:  # TRAINING
+        """Forward propagates inputs through a layer.
+        The implementation uses the running mean and running variance to
+        calculate the population variance and population mean for test time
+        ref: https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/batch_norm_layer.html
+        """
+        if stochastic:  
+            # TRAINING
             # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-            mu = 1. / N * np.sum(inputs, axis=0)  # Mean of each feature
-            xmu = inputs - mu
-            var = 1. / N * np.sum(xmu ** 2, axis=0)  # variance of each feature
-            xhat = xmu * (1. / np.sqrt(var + self.epsilon))  # normalise inputs
-            self.cache.append([mu, var])  # store mean and variance for inference
+            
+            mu = np.mean(inputs, axis=0)  # Mean of each feature
+            var = np.var(inputs, axis=0)  # variance of each feature
+            xhat = (inputs - mu) / np.sqrt(var + self.epsilon))  # normalise inputs
+            
+            running_mean *=  self.momentum
+            running_mean += (1.-self.momentum) * mu
+            running_var *=  self.momentum
+            running_var += (1.-self.momentum) * var
+            
+            self.cache = (xhat, mu, var, running_mean, running_var)
 
-        else:  # INFERENCE!
+        else:  
+            # INFERENCE!
             # using the population statistics instead:
-            pop_mu, mu_var = np.mean(self.cache)
-            pop_var = N / (N - 1.) * mu_var  # population variance
-            xhat = (inputs - pop_mu) * (pop_var + self.epsilon) ** (-1. / 2.)
+            _, _, _, running_mean, running_var = self.cache
+            xhat = (inputs - running_mean) * np.sqrt(running_var + self.epsilon)
 
         # Same step for both:
         output = self.gamma * xhat + self.beta
@@ -391,14 +402,18 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             (batch_size, input_dim).
         """
         # Adoped from : http://cthorey.github.io./backpropagation/
-
-        N, _ = outputs.shape
-        [mu, var] = self.cache[-1]  # the most recent one
+        xhat, mu, var, running_mean, running_var = self.cache
+        N,D = inputs.shape
         xmu = inputs - mu
-        dh = (1. / N) * self.gamma * (var + self.epsilon) ** (-1. / 2.) * (
-            N * grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) - xmu * (var + self.epsilon) ** (-1.) * np.sum(
-                grads_wrt_outputs * xmu, axis=0))
-        return dh
+        std_inv = 1./np.sqrt(var+self.epsilon)
+        dX_norm = grads_wrt_outputs * self.gamma
+        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv**3
+        dmu = np.sum(dX_norm *-std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
+        dX = (dX_norm *std_inv) + (dvar * 2 * xmu /N) + (dmu/N)
+        
+        assert dX.shape[0] == N
+        assert dX.shape[1] == D
+        return dX
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
@@ -412,11 +427,9 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             list of arrays of gradients with respect to the layer parameters
             `[grads_wrt_gamma, grads_wrt_beta]`.
         """
-        N, D = inputs.shape
-        [mu, var] = self.cache[-1]
-        xmu = inputs - mu
+        xhat, mu, var, running_mean, running_var = self.cache
         dbeta = np.sum(grads_wrt_outputs, axis=0)
-        dgamma = np.sum(xmu * (var + self.epsilon) ** (-1. / 2.) * grads_wrt_outputs, axis=0)
+        dgamma = np.sum(grads_wrt_outputs * xhat, axis=0)
         return [dgamma, dbeta]
 
     def params_penalty(self):

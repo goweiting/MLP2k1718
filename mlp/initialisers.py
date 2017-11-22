@@ -64,7 +64,30 @@ class NormalInit(object):
     def __call__(self, shape):
         return self.rng.normal(loc=self.mean, scale=self.std, size=shape)
 
+class HeNormalInit(object):
+    """Normal Initialisation that will usefull for DNN with  rectified linear units 
+    as mentioned in [1]
+    
+    References:
+        [1]: He, et al, 2015, Delving Deep into Rectifiers: Surpassing Human-Level 
+        Performance on ImageNet Classification, https://arxiv.org/abs/1502.01852
+    """
+    def __init__(self, fan_in, rng=None):
+        """Construct a normalised initilisation random initialiser object.
 
+        Args:
+            fan_in (int) size of fan_in
+            rng (RandomState): Seeded random number generator.
+        """
+        self.std = (2./fan_in)**.5
+        if rng is None:
+            rng = np.random.RandomState(DEFAULT_SEED)
+        self.rng = rng
+
+    def __call__(self, shape):
+        return self.rng.normal(loc=0., scale=self.std, size=shape)
+    
+    
 class GlorotUniformInit(object):
     """Glorot and Bengio (2010) random uniform weights initialiser.
 
