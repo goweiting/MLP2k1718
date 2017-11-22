@@ -406,11 +406,14 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         xhat, mu, var, running_mean, running_var = self.cache
         N, D = inputs.shape
         xmu = inputs - mu
-        std_inv = 1. / np.sqrt(var + self.epsilon)
-        dX_norm = grads_wrt_outputs * self.gamma
-        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv ** 3
-        dmu = np.sum(dX_norm * -std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
-        dX = (dX_norm * std_inv) + (dvar * 2 * xmu / N) + (dmu / N)
+        dxhat = grads_wrt_outputs * self.gamma
+        invar = 1./ np.sqrt(var+self.epsilon)
+        dX = (1./N) * invar * (N*dxhat - np.sum(dxhat, axis=0) - xhat*np.sum(dxhat*xhat, axis=0))
+        #std_inv = 1. / np.sqrt(var + self.epsilon)
+        #dX_norm = grads_wrt_outputs * self.gamma
+        #dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv ** 3
+        #dmu = np.sum(dX_norm * -std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
+        #dX = (dX_norm * std_inv) + (dvar * 2 * xmu / N) + (dmu / N)
 
         assert dX.shape[0] == N
         assert dX.shape[1] == D
