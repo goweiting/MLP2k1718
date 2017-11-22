@@ -97,7 +97,7 @@ class LayerWithParameters(Layer):
         raise NotImplementedError()
 
 
-class StochasticLayerWithParameters(Layer):
+class StochasticLayerWithParameters(LayerWithParameters):
     """Specialised layer which uses a stochastic forward propagation."""
 
     def __init__(self, rng=None):
@@ -344,7 +344,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """Initialises a parameterised affine layer.
         Args:
             input_dim : Dimension of the input layer
-        """
+        """_
         super(BatchNormalizationLayer, self).__init__(rng)
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
