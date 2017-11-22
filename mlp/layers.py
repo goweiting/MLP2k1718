@@ -816,22 +816,6 @@ class ELULayer(Layer):
 
         For inputs `x` and outputs `y` this corresponds to `y = max(0, x)`.
         """
-        ## Clipping the inputs:
-        # inputs = np.where(np.isnan(inputs), 0., inputs) # since they wont be assign to 0 anyway
-        # inputs = np.where(np.isinf(inputs), 1e25, inputs)
-        # positive_inputs = np.maximum(inputs, 0.)
-
-        # negative_inputs = np.copy(inputs)
-        ##negative_inputs[negative_inputs > 0.] = 0.
-        # negative_inputs = np.where(negative_inputs > 0., 0., negative_inputs)
-        # negative_inputs = self.alpha * (np.exp(negative_inputs) - 1.)
-
-        # outputs = positive_inputs + negative_inputs
-        ## Clipping the outputs:
-        # outputs = np.where(np.isnan(outputs), -1e-25, outputs)
-        # outputs = np.where(np.isinf(outputs), 1e25, outputs)
-        # return outputs
-
         positive_inputs = np.maximum(inputs, 0.)
 
         negative_inputs = np.copy(inputs)
