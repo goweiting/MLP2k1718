@@ -340,7 +340,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, rng=None, momentum=None):
+    def __init__(self, input_dim, rng=None, momentum=.9):
         """Initialises a parameterised affine layer.
         Args:
             input_dim : Dimension of the input layer
@@ -349,8 +349,8 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.momentum = .9 if None else momentum # fix at .9
-        self.cache = None
+        self.momentum = momentum# fix at .9
+        self.cache = None, None, None, 0., 0.
         self.input_dim = input_dim
 
     def fprop(self, inputs, stochastic=True):
@@ -359,22 +359,23 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         calculate the population variance and population mean for test time
         ref: https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/batch_norm_layer.html
         """
-        if stochastic:  
+        if stochastic:
             # TRAINING
             # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-            
+            xhat, mu, var, running_mean, running_var = self.cache
+
             mu = np.mean(inputs, axis=0)  # Mean of each feature
             var = np.var(inputs, axis=0)  # variance of each feature
             xhat = (inputs - mu) / np.sqrt(var + self.epsilon)  # normalise inputs
-            
-            running_mean *=  self.momentum
-            running_mean += (1.-self.momentum) * mu
-            running_var *=  self.momentum
-            running_var += (1.-self.momentum) * var
-            
+
+            running_mean *= self.momentum
+            running_mean += (1. - self.momentum) * mu
+            running_var *= self.momentum
+            running_var += (1. - self.momentum) * var
+
             self.cache = (xhat, mu, var, running_mean, running_var)
 
-        else:  
+        else:
             # INFERENCE!
             # using the population statistics instead:
             xhat, mu, var, running_mean, running_var = self.cache
@@ -403,14 +404,14 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """
         # Adoped from : http://cthorey.github.io./backpropagation/
         xhat, mu, var, running_mean, running_var = self.cache
-        N,D = inputs.shape
+        N, D = inputs.shape
         xmu = inputs - mu
-        std_inv = 1./np.sqrt(var+self.epsilon)
+        std_inv = 1. / np.sqrt(var + self.epsilon)
         dX_norm = grads_wrt_outputs * self.gamma
-        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv**3
-        dmu = np.sum(dX_norm *-std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
-        dX = (dX_norm *std_inv) + (dvar * 2 * xmu /N) + (dmu/N)
-        
+        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv ** 3
+        dmu = np.sum(dX_norm * -std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
+        dX = (dX_norm * std_inv) + (dvar * 2 * xmu / N) + (dmu / N)
+
         assert dX.shape[0] == N
         assert dX.shape[1] == D
         return dX
@@ -670,8 +671,7 @@ class MaxPoolingLayer(Layer):
     """
 
     def __init__(self, num_input_channels, input_dim_1, input_dim_2, extent=2, stride=None):
-
-        self.d0 = int(num_input_channels) # equivalent to num_output_channel
+        self.d0 = int(num_input_channels)  # equivalent to num_output_channel
         # INPUTS
         self.h0 = int(input_dim_1)
         self.w0 = int(input_dim_2)
@@ -703,25 +703,24 @@ class MaxPoolingLayer(Layer):
 
         # get the index of inputs that give us the maximum == maximum for each row:
         maxOut_idx = np.argmax(xCols, axis=0)  # this will be the mask that we will be using for backprop too
-        maxOut = xCols[maxOut_idx, range(maxOut_idx.size)] # get the max values using the idx found
-        self.cache = (xCols, maxOut_idx) # store
+        maxOut = xCols[maxOut_idx, range(maxOut_idx.size)]  # get the max values using the idx found
+        self.cache = (xCols, maxOut_idx)  # store
 
         #  Transform the output:
         output = maxOut.reshape(self.h1, self.w1, batch_size, self.d0)
         output = output.transpose(2, 3, 0, 1)
         return output
 
-
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = grads_wrt_outputs.shape
         # check the output shape:
-        assert _num_input_chn == self.d0 # the number of output channel is the same!
+        assert _num_input_chn == self.d0  # the number of output channel is the same!
         assert _input_dim_1 == self.h1
         assert _input_dim_2 == self.w1
 
         xCols, maxOut_idx = self.cache
         dX_col = np.zeros_like(xCols)
-        doutput_col = grads_wrt_outputs.transpose(2, 3, 0, 1).ravel() # flatten it
+        doutput_col = grads_wrt_outputs.transpose(2, 3, 0, 1).ravel()  # flatten it
 
         # assign the mask with grads_wrt_output for positions where the maximum are seen
         dX_col[maxOut_idx, range(doutput_col.size)] = doutput_col
