@@ -285,7 +285,7 @@ class EarlyStoppingOptimiser(object):
             ', '.join(['{0}={1:.2e}'.format(k, v) for (k, v) in stats.items()])
         ))
 
-    def train(self, num_epochs, stats_interval=5):
+    def train(self, max_num_epochs, stats_interval=5):
         """Trains a model for a set number of epochs.
 
         Args:
@@ -307,7 +307,7 @@ class EarlyStoppingOptimiser(object):
         #     progress_bar.set_description("Experiment Progress")
         early_stop = False
         epoch = 0
-        while not early_stop and epoch <= num_epochs:
+        while not early_stop and epoch <= max_num_epochs:
             epoch += 1
             start_time = time.time()
             self.do_training_epoch()
