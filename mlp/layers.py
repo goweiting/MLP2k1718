@@ -340,7 +340,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, rng=None, momentum=None):
+    def __init__(self, input_dim, rng=None, momentum=.9):
         """Initialises a parameterised affine layer.
         Args:
             input_dim : Dimension of the input layer
@@ -349,8 +349,8 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.momentum = .9 if None else momentum # fix at .9
-        self.cache = None
+        self.momentum = momentum# fix at .9
+        self.cache = None, None, None, 0., 0.
         self.input_dim = input_dim
 
     def fprop(self, inputs, stochastic=True):
@@ -359,25 +359,26 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         calculate the population variance and population mean for test time
         ref: https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/batch_norm_layer.html
         """
-        if stochastic:  
+        if stochastic:
             # TRAINING
             # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-            
+            xhat, mu, var, running_mean, running_var = self.cache
+
             mu = np.mean(inputs, axis=0)  # Mean of each feature
             var = np.var(inputs, axis=0)  # variance of each feature
-            xhat = (inputs - mu) / np.sqrt(var + self.epsilon))  # normalise inputs
-            
-            running_mean *=  self.momentum
-            running_mean += (1.-self.momentum) * mu
-            running_var *=  self.momentum
-            running_var += (1.-self.momentum) * var
-            
+            xhat = (inputs - mu) / np.sqrt(var + self.epsilon)  # normalise inputs
+
+            running_mean *= self.momentum
+            running_mean += (1. - self.momentum) * mu
+            running_var *= self.momentum
+            running_var += (1. - self.momentum) * var
+
             self.cache = (xhat, mu, var, running_mean, running_var)
 
-        else:  
+        else:
             # INFERENCE!
             # using the population statistics instead:
-            _, _, _, running_mean, running_var = self.cache
+            xhat, mu, var, running_mean, running_var = self.cache
             xhat = (inputs - running_mean) * np.sqrt(running_var + self.epsilon)
 
         # Same step for both:
@@ -403,14 +404,14 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """
         # Adoped from : http://cthorey.github.io./backpropagation/
         xhat, mu, var, running_mean, running_var = self.cache
-        N,D = inputs.shape
+        N, D = inputs.shape
         xmu = inputs - mu
-        std_inv = 1./np.sqrt(var+self.epsilon)
+        std_inv = 1. / np.sqrt(var + self.epsilon)
         dX_norm = grads_wrt_outputs * self.gamma
-        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv**3
-        dmu = np.sum(dX_norm *-std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
-        dX = (dX_norm *std_inv) + (dvar * 2 * xmu /N) + (dmu/N)
-        
+        dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv ** 3
+        dmu = np.sum(dX_norm * -std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
+        dX = (dX_norm * std_inv) + (dvar * 2 * xmu / N) + (dmu / N)
+
         assert dX.shape[0] == N
         assert dX.shape[1] == D
         return dX
@@ -514,6 +515,7 @@ class ConvolutionalLayer(LayerWithParameters):
     def __init__(self, num_input_channels, num_output_channels,
                  input_dim_1, input_dim_2,
                  kernel_dim_1, kernel_dim_2,
+                 padding=0, stride=1,
                  kernels_init=init.UniformInit(-0.01, 0.01),
                  biases_init=init.ConstantInit(0.),
                  kernels_penalty=None, biases_penalty=None):
@@ -541,18 +543,23 @@ class ConvolutionalLayer(LayerWithParameters):
             biases_penalty: Biases-dependent penalty term (regulariser) or
                 None if no regularisation is to be applied to the biases.
         """
-        self.d0 = num_input_channels
-        self.d1 = num_output_channels
+        self.d0 = int(num_input_channels)
+        self.d1 = int(num_output_channels)
         # INPUTS
-        self.h0 = input_dim_1
-        self.w0 = input_dim_2
+        self.h0 = int(input_dim_1)
+        self.w0 = int(input_dim_2)
         # KERNELS
-        self.f1 = kernel_dim_1
-        self.f2 = kernel_dim_2
+        self.f1 = int(kernel_dim_1)
+        self.f2 = int(kernel_dim_2)
         # OUTPUTS
-        self.h1 = self.h0 - self.f1 + 1  # NO PADDING
-        self.w1 = self.w0 - self.f2 + 1  # NO PADDING
+        ## CHECK THE DIMENSIONS:
+        assert (input_dim_1 + 2 * padding - kernel_dim_1) % stride == 0
+        assert (input_dim_2 + 2 * padding - kernel_dim_2) % stride == 0
+        self.h1 = int((input_dim_1 + 2 * padding - kernel_dim_1) * stride ** -1) + 1  # output_dim_1
+        self.w1 = int((input_dim_2 + 2 * padding - kernel_dim_2) * stride ** -1) + 1  # output_dim_2
 
+        self.padding = int(padding)
+        self.stride = int(stride)
         self.kernels_init = kernels_init
         self.biases_init = biases_init
         self.kernels_shape = (self.d1, self.d0, self.f1, self.f2)
@@ -573,15 +580,9 @@ class ConvolutionalLayer(LayerWithParameters):
         Returns:
             outputs: Array of layer outputs of shape (batch_size, output_dim).
         """
-        # (N, d) = inputs.shape
-        # assert self.d0 * self.h0 * self.w0 == d, "incorrect declaration of input_dim"
-
-        # IM2COL IMPLEMENTATION; REF:CS website
-        # _input = np.reshape(inputs, (N, self.d0, self.h0, self.w0))
-        # xCols = self.im2col_indices(_input, self.f1, self.f2, padding=0, stride=1)
-
         # convert inputs into columns for
-        xCols = self.im2col_indices(inputs, self.f1, self.f2, padding=0, stride=1)
+        xCols = im2col_indices(inputs, field_height=self.f1, field_width=self.f2, padding=self.padding,
+                               stride=self.stride)
         # Convert kernels into column vectors
         wCols = np.reshape(self.kernels, (self.d1, -1))
         # cross-correlation:
@@ -613,7 +614,8 @@ class ConvolutionalLayer(LayerWithParameters):
         _grads_wrt_outputs = grads_wrt_outputs.transpose(1, 2, 3, 0).reshape(self.d1, -1)
         _kernels = self.kernels.reshape(self.d1, -1)
         _output = _kernels.T @ _grads_wrt_outputs
-        output = self.col2im_indices(_output, inputs.shape, self.f1, self.f2, padding=0, stride=1)
+        output = col2im_indices(_output, inputs.shape, field_height=self.f1, field_width=self.f2, padding=self.padding,
+                                stride=self.stride)
         assert output.shape == inputs.shape, "error transforming from column to matrices!"
         return output
 
@@ -638,69 +640,6 @@ class ConvolutionalLayer(LayerWithParameters):
 
         return [grads_wrt_kernels, grads_wrt_biases]
 
-    ### HELPER FUNCTIONS ADAPTED FROM CS231N: https://github.com/huyouare/CS231n/blob/master/assignment2/cs231n/im2col.py ###
-    def get_im2col_indices(self, x_shape, field_height, field_width, padding=0, stride=1):
-        # First figure out what the size of the output should be
-        N, C, H, W = x_shape  # N == NONE
-        assert (H + 2 * padding - field_height) % stride == 0
-        assert (W + 2 * padding - field_height) % stride == 0
-        out_height = (H + 2 * padding - field_height) / stride + 1
-        out_width = (W + 2 * padding - field_width) / stride + 1
-        out_height = int(out_height)
-        out_width = int(out_width)
-
-        i0 = np.repeat(np.arange(field_height), field_width)
-        i0 = np.tile(i0, C)
-        i1 = stride * np.repeat(np.arange(out_height), out_width)
-        j0 = np.tile(np.arange(field_width), field_height * C)
-        j1 = stride * np.tile(np.arange(out_width), out_height)
-        i = i0.reshape(-1, 1) + i1.reshape(1, -1)
-        j = j0.reshape(-1, 1) + j1.reshape(1, -1)
-
-        k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
-
-        return (k, i, j)
-
-    def im2col_indices(self, x, field_height, field_width, padding=0, stride=1):
-        """ An implementation of im2col based on some fancy indexing """
-        p = padding
-        x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
-
-        k, i, j = self.get_im2col_indices(x.shape, field_height, field_width, padding,
-                                          stride)
-
-        cols = x_padded[:, k, i, j]
-        C = x.shape[1]
-        cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
-        return cols
-
-    def col2im_indices(self, cols, x_shape, field_height=3, field_width=3, padding=1,
-                       stride=1):
-        """ An implementation of col2im based on fancy indexing and np.add.at """
-        N, C, H, W = x_shape
-        H_padded, W_padded = H + 2 * padding, W + 2 * padding
-        x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
-        k, i, j = self.get_im2col_indices(x_shape, field_height, field_width, padding,
-                                          stride)
-        cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
-        cols_reshaped = cols_reshaped.transpose(2, 0, 1)
-        np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
-        if padding == 0:
-            return x_padded
-
-        return x_padded[:, :, padding:-padding, padding:-padding]
-
-    def params_penalty(self):
-        """Returns the parameter dependent penalty term for this layer.
-        If no parameter-dependent penalty terms are set this returns zero.
-        """
-        params_penalty = 0
-        if self.kernels_penalty is not None:
-            params_penalty += self.kernels_penalty(self.kernels)
-        if self.biases_penalty is not None:
-            params_penalty += self.biases_penalty(self.biases)
-        return params_penalty
-
     @property
     def params(self):
         """A list of layer parameter values: `[kernels, biases]`."""
@@ -718,9 +657,89 @@ class ConvolutionalLayer(LayerWithParameters):
             '    input_dim_1={2}, input_dim_2={3},\n'
             '    kernel_dim_1={4}, kernel_dim_2={5}\n'
             ')'
-                .format(self.num_input_channels, self.num_output_channels,
-                        self.input_dim_1, self.input_dim_2, self.kernel_dim_1,
-                        self.kernel_dim_2)
+                .format(self.d0, self.d1,
+                        self.w0, self.h0, self.f1,
+                        self.f2)
+        )
+
+
+class MaxPoolingLayer(Layer):
+    """
+    MaxPoolingLayer implements MaxPool for each input channel of the input. A receptive
+    field of extent x extent is used to pool the areas. By default, no overlapping striding is used.
+    i.e. a stride size = extent is used.
+    """
+
+    def __init__(self, num_input_channels, input_dim_1, input_dim_2, extent=2, stride=None):
+        self.d0 = int(num_input_channels)  # equivalent to num_output_channel
+        # INPUTS
+        self.h0 = int(input_dim_1)
+        self.w0 = int(input_dim_2)
+        # MAXPOOLING
+        self.f = extent
+        self.stride = extent if stride is None else stride
+        # OUTPUTS
+        assert (input_dim_1 - extent) % self.stride == 0
+        assert (input_dim_2 - extent) % self.stride == 0
+        self.h1 = int((input_dim_1 - extent) / self.stride + 1)
+        self.w1 = int((input_dim_2 - extent) / self.stride + 1)
+
+        self.cache = None
+
+    def fprop(self, inputs):
+        batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = inputs.shape
+        # Check that the input passes is similar ot what was declared
+        assert _num_input_chn == self.d0
+        assert _input_dim_1 == self.h0
+        assert _input_dim_2 == self.w0
+
+        # Stack all the minibatch together
+        _inputs = inputs.reshape(batch_size * self.d0, 1, self.h0, self.w0)
+
+        # cast the inputs into column vectors, each representing the area that the filter will meet
+        # when a dot-product is used.
+        xCols = im2col_indices(x=_inputs, field_height=self.f, field_width=self.f,
+                               padding=0, stride=self.stride)
+
+        # get the index of inputs that give us the maximum == maximum for each row:
+        maxOut_idx = np.argmax(xCols, axis=0)  # this will be the mask that we will be using for backprop too
+        maxOut = xCols[maxOut_idx, range(maxOut_idx.size)]  # get the max values using the idx found
+        self.cache = (xCols, maxOut_idx)  # store
+
+        #  Transform the output:
+        output = maxOut.reshape(self.h1, self.w1, batch_size, self.d0)
+        output = output.transpose(2, 3, 0, 1)
+        return output
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = grads_wrt_outputs.shape
+        # check the output shape:
+        assert _num_input_chn == self.d0  # the number of output channel is the same!
+        assert _input_dim_1 == self.h1
+        assert _input_dim_2 == self.w1
+
+        xCols, maxOut_idx = self.cache
+        dX_col = np.zeros_like(xCols)
+        doutput_col = grads_wrt_outputs.transpose(2, 3, 0, 1).ravel()  # flatten it
+
+        # assign the mask with grads_wrt_output for positions where the maximum are seen
+        dX_col[maxOut_idx, range(doutput_col.size)] = doutput_col
+        dX = col2im_indices(dX_col, (batch_size * self.d0, 1, self.h0, self.w0),
+                            self.f, self.f, padding=0, stride=self.stride)
+        # reshape the gradients according to how it was:
+        dX = dX.reshape((batch_size, self.d0, self.h0, self.w0))
+        return dX
+
+    def __repr__(self):
+        return (
+            'MaxPoolLayer(\n'
+            '    num_input_channels={0},\n'
+            '    input_dim_1={1}, input_dim_2={2},\n'
+            '    extent={3}, stride={4}\n'
+            ')'
+                .format(self.d0,
+                        self.h0, self.w0,
+                        self.f, self.stride)
         )
 
 
@@ -1152,3 +1171,55 @@ class ReshapeLayer(Layer):
 
     def __repr__(self):
         return 'ReshapeLayer(output_shape={0})'.format(self.output_shape)
+
+
+# =====================HELPER FUNCTIONS======================================#
+def get_im2col_indices(x_shape, field_height, field_width, padding=1, stride=1):
+    # First figure out what the size of the output should be
+    N, C, H, W = x_shape
+    assert (H + 2 * padding - field_height) % stride == 0
+    assert (W + 2 * padding - field_height) % stride == 0
+    out_height = int((H + 2 * padding - field_height) / stride + 1)
+    out_width = int((W + 2 * padding - field_width) / stride + 1)
+
+    i0 = np.repeat(np.arange(field_height), field_width)
+    i0 = np.tile(i0, C)
+    i1 = stride * np.repeat(np.arange(out_height), out_width)
+    j0 = np.tile(np.arange(field_width), field_height * C)
+    j1 = stride * np.tile(np.arange(out_width), out_height)
+    i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+    j = j0.reshape(-1, 1) + j1.reshape(1, -1)
+
+    k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
+
+    return (k.astype(int), i.astype(int), j.astype(int))
+
+
+def im2col_indices(x, field_height, field_width, padding=1, stride=1):
+    """ An implementation of im2col based on some fancy indexing """
+    # Zero-pad the input
+    p = padding
+    x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
+
+    k, i, j = get_im2col_indices(x.shape, field_height, field_width, padding, stride)
+
+    cols = x_padded[:, k, i, j]
+    C = x.shape[1]
+    cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
+    return cols
+
+
+def col2im_indices(cols, x_shape, field_height=3, field_width=3, padding=1,
+                   stride=1):
+    """ An implementation of col2im based on fancy indexing and np.add.at """
+    N, C, H, W = x_shape
+    H_padded, W_padded = H + 2 * padding, W + 2 * padding
+    x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
+    k, i, j = get_im2col_indices(x_shape, field_height, field_width, padding, stride)
+    cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
+    cols_reshaped = cols_reshaped.transpose(2, 0, 1)
+    np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
+    if padding == 0:
+        return x_padded
+    else:
+        return x_padded[:, :, padding:-padding, padding:-padding]
