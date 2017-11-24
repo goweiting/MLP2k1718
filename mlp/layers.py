@@ -349,7 +349,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.momentum = momentum # fix at .9
+        self.momentum = momentum
         self.cache = None, None, None, 0., 0.
         self.input_dim = input_dim
 
@@ -357,7 +357,6 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """Forward propagates inputs through a layer.
         The implementation uses the running mean and running variance to
         calculate the population variance and population mean for test time
-        ref: https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/batch_norm_layer.html
         """
         if stochastic:
             # TRAINING
@@ -402,18 +401,12 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        # Adoped from : http://cthorey.github.io./backpropagation/
         xhat, mu, var, running_mean, running_var = self.cache
         N, D = inputs.shape
         xmu = inputs - mu
         dxhat = grads_wrt_outputs * self.gamma
         invar = 1./ np.sqrt(var+self.epsilon)
         dX = (1./N) * invar * (N*dxhat - np.sum(dxhat, axis=0) - xhat*np.sum(dxhat*xhat, axis=0))
-        #std_inv = 1. / np.sqrt(var + self.epsilon)
-        #dX_norm = grads_wrt_outputs * self.gamma
-        #dvar = np.sum(dX_norm * xmu, axis=0) + -.5 * std_inv ** 3
-        #dmu = np.sum(dX_norm * -std_inv, axis=0) + dvar * np.mean(-2. * xmu, axis=0)
-        #dX = (dX_norm * std_inv) + (dvar * 2 * xmu / N) + (dmu / N)
 
         assert dX.shape[0] == N
         assert dX.shape[1] == D
@@ -459,7 +452,7 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         return 'BatchNormalizationLayer(input_dim={0})'.format(
             self.input_dim)
 
-
+    
 class SigmoidLayer(Layer):
     """Layer implementing an element-wise logistic sigmoid transformation."""
 
