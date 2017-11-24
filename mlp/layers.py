@@ -344,12 +344,12 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
         """Initialises a parameterised affine layer.
         Args:
             input_dim : Dimension of the input layer
-        """_
+        """
         super(BatchNormalizationLayer, self).__init__(rng)
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
         self.epsilon = 0.00001
-        self.momentum = momentum# fix at .9
+        self.momentum = momentum # fix at .9
         self.cache = None, None, None, 0., 0.
         self.input_dim = input_dim
 
