@@ -1,10 +1,3 @@
-# coding: utf-8
-
-# # MLP CW 2 - PART B
-
-# ## Setup
-
-# In[1]:
 from __future__ import print_function
 
 
@@ -37,7 +30,7 @@ def train_model_and_plot_stats(model,
             patience=3)
         stats, key, run_time, best_epoch = optimiser.train(
             max_num_epochs=num_epochs, stats_interval=stats_interval)
-        return (stats, key, run_time, best_epoch)
+        return (stats, key, run_time, best_epoch) # ADD TO RETURN THE OPTIMISER TOO
     else:
         optimiser = Optimiser(
             model,
@@ -52,9 +45,6 @@ def train_model_and_plot_stats(model,
         stats, keys, run_time = optimiser.train(
             num_epochs=num_epochs, stats_interval=stats_interval)
         return (stats, keys, run_time)
-
-
-# In[3]:
 
 
 # The below code will set up the data providers, random number
@@ -81,9 +71,6 @@ train_data = EMNISTDataProvider('train', batch_size=batch_size, rng=rng)
 valid_data = EMNISTDataProvider('valid', batch_size=batch_size, rng=rng)
 test_data = EMNISTDataProvider('test', batch_size=batch_size, rng=rng)
 
-# In[6]:
-
-
 # The model set up code below is provided as a starting point.
 # You will probably want to add further code cells for the
 # different experiments you run.
@@ -91,13 +78,13 @@ test_data = EMNISTDataProvider('test', batch_size=batch_size, rng=rng)
 from mlp.layers import *
 from mlp.errors import CrossEntropyLogSoftmaxError
 from mlp.models import MultipleLayerModel
-from mlp.initialisers import ConstantInit, GlorotUniformInit
-from mlp.learning_rules import GradientDescentLearningRule, AdamLearningRule, RMSPropLearningRule
+from mlp.initialisers import ConstantInit, GlorotUniformInit, HeNormalInit
+from mlp.learning_rules import GradientDescentLearningRule, MomentumLearningRule, AdamLearningRule, RMSPropLearningRule
 from mlp.optimisers import Optimiser, EarlyStoppingOptimiser
 
 # setup hyperparameters
 learning_rate = 0.1
-num_epochs = 100
+num_epochs = 60
 stats_interval = 1
 input_dim, output_dim, hidden_dim = 784, 47, 100
 
@@ -111,7 +98,7 @@ model = MultipleLayerModel([
     ReshapeLayer(output_shape=(1, 28, 28)),
     ConvolutionalLayer(
         num_input_channels=1,
-        num_output_channels=5,
+        num_output_channels=20,
         input_dim_1=28,
         input_dim_2=28,
         kernel_dim_1=5,
@@ -119,13 +106,13 @@ model = MultipleLayerModel([
         padding=0,
         stride=1),
     MaxPoolingLayer(
-        num_input_channels=5, input_dim_1=24, input_dim_2=24, extent=2),
-    ReshapeLayer(output_shape=(12 * 12 * 5,)),
+        num_input_channels=20, input_dim_1=24, input_dim_2=24, extent=2),
+    ReshapeLayer(output_shape=(12 * 12 * 20,)),
     ReluLayer(),
-    ReshapeLayer(output_shape=(5,12,12)),
+    ReshapeLayer(output_shape=(20,12,12)),
     ConvolutionalLayer(
-        num_input_channels=5,
-        num_output_channels=10,
+        num_input_channels=20,
+        num_output_channels=50,
         input_dim_1=12,
         input_dim_2=12,
         kernel_dim_1=5,
@@ -133,18 +120,19 @@ model = MultipleLayerModel([
         padding=0,
         stride=1),
     MaxPoolingLayer(
-        num_input_channels=10, input_dim_1=8, input_dim_2=8, extent=2),
-    ReshapeLayer(output_shape=(4 * 4 * 10,)),
-    AffineLayer(4*4*10, output_dim, weights_init, biases_init),
+        num_input_channels=50, input_dim_1=8, input_dim_2=8, extent=2),
+    ReshapeLayer(output_shape=(4 * 4 * 50,)),
     ReluLayer(),
-    AffineLayer(output_dim, output_dim, weights_init, biases_init)
+    AffineLayer(4 * 4 * 50, 400, weights_init, biases_init),
+    ReluLayer(),
+    AffineLayer(400, output_dim, weights_init, biases_init)
 ])
 
 error = CrossEntropyLogSoftmaxError()
-learning_rule = AdamLearningRule()
+learning_rule = MomentumLearningRule()
 
 # Remember to use notebook=False when you write a script to be run in a terminal
-trial1 = train_model_and_plot_stats(
+expt = train_model_and_plot_stats(
     model,
     error,
     learning_rule,
@@ -154,8 +142,7 @@ trial1 = train_model_and_plot_stats(
     num_epochs,
     stats_interval,
     notebook=False,
-    earlyStopping=True)
+    earlyStopping=False)
 
 import pickle as pkl
-
-pkl.dump(trial1, open('BASELINE.pkl', 'wb'), protocol=-1)
+pkl.dump(expt, open('leNet-XAVIER.pkl', 'wb'), protocol=-1)
