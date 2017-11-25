@@ -1413,3 +1413,87 @@ def _grads_kernels(kernels_shape, grads_wrt_kernels, grads_wrt_outputs, inputs,
                     grads_wrt_kernels[fprime, cprime, i, j] = np.sum(
                         grads_wrt_outputs[:, fprime, :, :] * x_t)
     return grads_wrt_kernels
+
+
+class g(Layer):
+    """
+    MaxPoolingLayer implements MaxPool for each input channel of the input. A receptive
+    field of extent x extent is used to pool the areas. By default, no overlapping striding is used.
+    i.e. a stride size = extent is used.
+    """
+
+    def __init__(self, num_input_channels, input_dim_1, input_dim_2, extent=2, stride=None):
+        self.d0 = int(num_input_channels)  # equivalent to num_output_channel
+        # INPUTS
+        self.h0 = int(input_dim_1)
+        self.w0 = int(input_dim_2)
+        # MAXPOOLING
+        self.f = extent
+        self.stride = extent if stride is None else stride
+        # OUTPUTS
+        assert (input_dim_1 - extent) % self.stride == 0
+        assert (input_dim_2 - extent) % self.stride == 0
+        self.h1 = int((input_dim_1 - extent) / self.stride + 1)
+        self.w1 = int((input_dim_2 - extent) / self.stride + 1)
+
+        self.cache = None
+
+    def fprop(self, inputs):
+        batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = inputs.shape
+        # Check that the input passes is similar ot what was declared
+        assert _num_input_chn == self.d0
+        assert _input_dim_1 == self.h0
+        assert _input_dim_2 == self.w0
+
+        output = maxpool_forward(inputs, self.d0, self.h1, self.w1, self.stride, self.f)
+        return output
+
+    def bprop(self, inputs, outputs, grads_wrt_outputs):
+        batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = grads_wrt_outputs.shape
+        # check the output shape:
+        assert _num_input_chn == self.d0  # the number of output channel is the same!
+        assert _input_dim_1 == self.h1
+        assert _input_dim_2 == self.w1
+        dX = maxpool_backward(inputs, grads_wrt_outputs, self.d0, self.h1, self.w1, self.stride, self.f)
+        return dX
+
+    def __repr__(self):
+        return (
+            'MaxPoolLayer(\n'
+            '    num_input_channels={0},\n'
+            '    input_dim_1={1}, input_dim_2={2},\n'
+            '    extent={3}, stride={4}\n'
+            ')'
+                .format(self.d0,
+                        self.h0, self.w0,
+                        self.f, self.stride)
+        )
+
+
+@jit(nopython=True)
+def maxpool_forward(inputs, d0, h1, w1, S, extent):
+    N = inputs.shape[0]
+    out = np.zeros((N, d0, h1, w1))
+    for n in range(N):
+        for c in range(d0):
+            for k in range(h1):
+                for l in range(w1):
+                    out[n, c, k, l] = np.max(
+                        inputs[n, c, k * S:k * S + extent, l * S:l * S + extent])
+    return out
+
+
+@jit(nopython=True)
+def maxpool_backward(inputs, grads_wrt_outputs, d0, h1, w1, S, extent):
+    N = inputs.shape[0]
+    dX = np.zeros_like(inputs)
+    for nprime in range(N):
+        for cprime in range(d0):
+            for k in range(h1):
+                for l in range(w1):
+                    x_pooling = inputs[nprime, cprime, k * S:k * S + extent, l * S:l * S + extent]
+                    maxi = np.max(x_pooling)
+                    x_mask = x_pooling == maxi
+                    dX[nprime, cprime, k * S:k * S + extent, l * S:l * S + extent] += grads_wrt_outputs[
+                                                                                          nprime, cprime, k, l] * x_mask
+    return dX
