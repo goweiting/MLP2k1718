@@ -1203,7 +1203,6 @@ class ReshapeLayer(Layer):
         return 'ReshapeLayer(output_shape={0})'.format(self.output_shape)
 
 
-# ============================ HELPER FUNCTION ============================
 class ConvolutionalLayer_NUMBA(LayerWithParameters):
     """Layer implementing a 2D convolution-based transformation of its inputs.
     The layer is parameterised by a set of 2D convolutional kernels, a four
@@ -1347,7 +1346,7 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
         self.biases = values[1]
 
     def __repr__(self):
-        return ('ConvolutionalLayer(\n'
+        return ('ConvolutionalLayer_N(\n'
                 '    num_input_channels={0}, num_output_channels={1},\n'
                 '    input_dim_1={2}, input_dim_2={3},\n'
                 '    kernel_dim_1={4}, kernel_dim_2={5}\n'
@@ -1415,7 +1414,7 @@ def _grads_kernels(kernels_shape, grads_wrt_kernels, grads_wrt_outputs, inputs,
     return grads_wrt_kernels
 
 
-class g(Layer):
+class MaxPoolingLayer_NUMBA(Layer):
     """
     MaxPoolingLayer implements MaxPool for each input channel of the input. A receptive
     field of extent x extent is used to pool the areas. By default, no overlapping striding is used.
@@ -1459,7 +1458,7 @@ class g(Layer):
 
     def __repr__(self):
         return (
-            'MaxPoolLayer(\n'
+            'MaxPoolLayer_N(\n'
             '    num_input_channels={0},\n'
             '    input_dim_1={1}, input_dim_2={2},\n'
             '    extent={3}, stride={4}\n'
