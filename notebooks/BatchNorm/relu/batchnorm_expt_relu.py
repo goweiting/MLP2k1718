@@ -1,7 +1,7 @@
 from __future__ import print_function
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
-
+import pickle as pkl
 
 def train_model_and_plot_stats(model,
                                error,
