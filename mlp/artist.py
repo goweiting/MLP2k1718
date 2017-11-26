@@ -58,8 +58,7 @@ def plot_graph_mean_std(data, best_epochs):
         ax12.set_title('VALIDATION')
         ax12.legend(loc=0)
         ax22.legend(loc=0)
-        
-        ax22.scatter(best_epochs[i]['idx'], best_epochs[i]['mean'], c=c[c_i], marker='X')
+        ax22.scatter(best_epochs[i]['idx'], best_epochs[i]['mean'], c=c[c_i], marker='v')
         c_i+=1
         
     return fig1, fig2, ax11, ax12, ax21, ax22
