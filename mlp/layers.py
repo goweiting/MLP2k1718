@@ -1289,17 +1289,14 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
         self.biases_penalty = biases_penalty
 
         self.cache = None
-
+    
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
         For inputs `x`, outputs `y`, kernels `K` and biases `b` the layer
         corresponds to `y = conv2d(x, K) + b`.
-        """
-        N = inputs.shape[0]
-        outputs = np.zeros((N, self.d1, self.h1, self.w1))
-        return convol2d_forward(outputs, inputs, self.kernels, self.biases, self.stride, N, self.f1, self.f1, self.f2,
-                                self.h1, self.w1)
-
+        """   
+        return convol2d_forward(inputs, self.kernels, self.biases, self.stride, inputs.shape[0], self.d1, self.f1, self.f2, self.h1, self.w1)
+    
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
         Given gradients with respect to the outputs of the layer calculates the
@@ -1317,8 +1314,7 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        dX = np.zeros_like(inputs)
-        return convol2d_backward(dX, inputs, self.kernels, grads_wrt_outputs, self.stride, inputs.shape[0], self.d1,
+        return convol2d_backward(inputs, self.kernels, grads_wrt_outputs, self.stride, inputs.shape[0], self.d1,
                                  self.d0, self.h0, self.w0, self.h1, self.w1, self.f1, self.f2)
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
@@ -1360,9 +1356,8 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
 
 
 @jit(nopython=True)
-def convol2d_forward(outputs, inputs, kernels, biases, S, N, F, kdim1, kdim2, outdim1, outdim2):
+def convol2d_forward(inputs, kernels, biases, S, N, F, kdim1, kdim2, outdim1, outdim2):
     """
-
     Calculates the forward cross-correlation pass, using numba to speed the
     for-loop up!
     :param inputs: ndarray of [batch_size, input_channel, input_dim1, input_dim2]
@@ -1373,22 +1368,29 @@ def convol2d_forward(outputs, inputs, kernels, biases, S, N, F, kdim1, kdim2, ou
     where : output_dim1 = S * (input_dim1 - kernel_dim1) + 1
             output_dim2 = S * (input_dim2 - kernel_dim2) + 1
     """
+    outputs = np.zeros((N, F, outdim1, outdim2))
     # Go through each image:
     for n in range(N):
         # For each output feature map:
         for f in range(F):
+            _kernels = kernels[f, :]
+            _bias = biases[f]
             # Next two for loops: each dimension of the feature map
             for fm_d1 in range(outdim1):
+                _one_upper = fm_d1 * S
+                _one_lower = fm_d1 * S + kdim1
+                    
                 for fm_d2 in range(outdim2):
-                    outputs[n, f, fm_d1, fm_d2] = np.sum(
-                        inputs[n, :, fm_d1 * S:fm_d1 * S + kdim1,
-                        fm_d2 * S:fm_d2 * S + kdim2]  # the corresponding image depth
-                        * kernels[f, :]) + biases[f]
+                    # the corresponding image depth
+                    _two_upper = fm_d2 * S
+                    _two_lower = fm_d2 * S + kdim2
+                    product = inputs[n, :, _one_upper:_one_lower , _two_upper:_two_lower]  * _kernels
+                    outputs[n, f, fm_d1, fm_d2] = np.sum(product) + _bias
     return outputs
 
 
 @jit(nopython=True)
-def convol2d_backward(dX, inputs, kernels, grads_wrt_outputs, S, N, F, channel, indim1, indim2, outdim1, outdim2,
+def convol2d_backward(inputs, kernels, grads_wrt_outputs, S, N, F, channel, indim1, indim2, outdim1, outdim2,
                       kdim1, kdim2):
     """
     Accelarated implementing of a naive backward propagation using numba
@@ -1407,19 +1409,23 @@ def convol2d_backward(dX, inputs, kernels, grads_wrt_outputs, S, N, F, channel, 
     :param kdim2: kernel dimension 2 = f2
     :return: dX
     """
+    dX = np.zeros_like(inputs)
     for n in range(N):
         for c in range(channel):
             for i in range(indim1):
                 for j in range(indim2):
+                    a = 0.
                     for f in range(F):
                         for k in range(outdim1):
+                            sub1 = k * S
                             for l in range(outdim2):
+                                sub2 = S * l
                                 for p in range(kdim1):
-                                    for q in range(kdim2):
-                                        if (p + k * S == i) & (q + S * l == j):
-                                            dX[n, c, i, j] += grads_wrt_outputs[
-                                                                  n, f, k, l] * kernels[
-                                                                  f, c, p, q]
+                                    if (p + sub1 == i):
+                                        for q in range(kdim2):
+                                            if  (q + sub2 == j):
+                                                a += grads_wrt_outputs[n, f, k, l] * kernels[f, c, p, q]
+                    dX[n, c, i, j] = a
     return dX
 
 
@@ -1476,15 +1482,18 @@ class MaxPoolingLayer_NUMBA(Layer):
         assert _num_input_chn == self.d0
         assert _input_dim_1 == self.h0
         assert _input_dim_2 == self.w0
-        return maxpool_forward(inputs, self.d0, self.h1, self.w1, self.stride, self.f)
-
+        self.cache = np.zeros((inputs.shape[0], self.d0, self.h1, self.w1))
+        out, cache =  maxpool_forward(inputs, self.d0, self.h1, self.w1, self.stride, self.f, self.cache)
+        self.cache = cache
+        return out
+        
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = grads_wrt_outputs.shape
         # check the output shape:
         assert _num_input_chn == self.d0  # the number of output channel is the same!
         assert _input_dim_1 == self.h1
         assert _input_dim_2 == self.w1
-        return maxpool_backward(inputs, grads_wrt_outputs, self.d0, self.h1, self.w1, self.stride, self.f)
+        return maxpool_backward(inputs, grads_wrt_outputs, self.d0, self.h1, self.w1, self.stride, self.f, self.cache)
 
     def __repr__(self):
         return (
@@ -1500,7 +1509,7 @@ class MaxPoolingLayer_NUMBA(Layer):
 
 
 @jit(nopython=True)
-def maxpool_forward(inputs, chn, h1, w1, S, extent):
+def maxpool_forward(inputs, chn, h1, w1, S, extent, cache):
     """
     Take the max over a recpetive field of [extent x extent] across the input image.
     In the input have more than one channel, the maximum is calculated for
@@ -1522,13 +1531,25 @@ def maxpool_forward(inputs, chn, h1, w1, S, extent):
         for c in range(chn):
             for k in range(h1):
                 for l in range(w1):
-                    x_pooling = inputs[n, c, k * S:k * S + extent, l * S:l * S + extent]
-                    out[n, c, k, l] = np.max(x_pooling)
-    return out
+                    _max = 0
+                    _first1 = k * S
+                    _first2 = l * S
+                    for e in range(extent):
+                        _next1 = _first1 + e
+                        _next2 = _first2 + e
+                        _max = max(inputs[n, c, _next1, _next2], _max)                      
+                    out[n, c, k, l] = _max
+                    cache[n,c,k,l] = _max
+    return out, cache
+    #                 x_pooling = inputs[n, c, k * S:k * S + extent, l * S:l * S + extent]
+    #                 out[n,c,k,l] = np.max(x_pooling)
+    # return out
+                    
+                    
 
 
 @jit(nopython=True)
-def maxpool_backward(inputs, grads_wrt_outputs, chn, h1, w1, S, extent):
+def maxpool_backward(inputs, grads_wrt_outputs, chn, h1, w1, S, extent, cache):
     """
     Similar to relu that takes the maximum, we do not have any calculations to compute,
     but to check which element contributed to the maximum, and hence have to be responsible
@@ -1549,8 +1570,11 @@ def maxpool_backward(inputs, grads_wrt_outputs, chn, h1, w1, S, extent):
         for c in range(chn):
             for k in range(h1):
                 for l in range(w1):
-                    x_pooling = inputs[n, c, k * S:k * S + extent, l * S:l * S + extent]
-                    maxi = np.max(x_pooling)
-                    x_mask = x_pooling == maxi
-                    dX[n, c, k * S:k * S + extent, l * S:l * S + extent] += grads_wrt_outputs[n, c, k, l] * x_mask
+                    _lower = k * S
+                    _upper = k * S + extent
+                    _lower2 = l * S
+                    _upper2 = l * S + extent
+                    x_pooling = inputs[n, c, _lower:_upper, _lower2:_upper2]
+                    x_mask = x_pooling == cache[n,c,k,l]
+                    dX[n, c, _lower:_upper, _lower2:_upper2] += grads_wrt_outputs[n, c, k, l] * x_mask
     return dX
