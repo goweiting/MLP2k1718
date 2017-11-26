@@ -34,7 +34,7 @@ func = ELULayer()
 i = 4  # + 1 = 5 layers
 # ==================================================================================
 
-for trial in range(1, 3):
+for trial in [3]:
     experiment_DROPOUT = {}
     for incl_prob in [.5, .7, .9]:
         train_data.reset()
@@ -77,4 +77,4 @@ for trial in range(1, 3):
                                                                    notebook=False,
                                                                    displayGraphs=False)
 
-    pkl.dump(experiment_DROPOUT, open('dropOut_{}.pkl', 'wb'), protocol=-1)
+    pkl.dump(experiment_DROPOUT, open('dropOut_{}.pkl'.format(trial), 'wb'), protocol=-1)
