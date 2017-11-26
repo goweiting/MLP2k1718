@@ -660,58 +660,6 @@ class ConvolutionalLayer(LayerWithParameters):
         )
 
 
-# =====================HELPER FUNCTIONS======================================#
-def get_im2col_indices(x_shape, field_height, field_width, padding=1, stride=1):
-    # First figure out what the size of the output should be
-    N, C, H, W = x_shape
-    assert (H + 2 * padding - field_height) % stride == 0
-    assert (W + 2 * padding - field_height) % stride == 0
-    out_height = int((H + 2 * padding - field_height) / stride + 1)
-    out_width = int((W + 2 * padding - field_width) / stride + 1)
-
-    i0 = np.repeat(np.arange(field_height), field_width)
-    i0 = np.tile(i0, C)
-    i1 = stride * np.repeat(np.arange(out_height), out_width)
-    j0 = np.tile(np.arange(field_width), field_height * C)
-    j1 = stride * np.tile(np.arange(out_width), out_height)
-    i = i0.reshape(-1, 1) + i1.reshape(1, -1)
-    j = j0.reshape(-1, 1) + j1.reshape(1, -1)
-
-    k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
-
-    return (k.astype(int), i.astype(int), j.astype(int))
-
-
-def im2col_indices(x, field_height, field_width, padding=1, stride=1):
-    """ An implementation of im2col based on some fancy indexing """
-    # Zero-pad the input
-    p = padding
-    x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
-
-    k, i, j = get_im2col_indices(x.shape, field_height, field_width, padding, stride)
-
-    cols = x_padded[:, k, i, j]
-    C = x.shape[1]
-    cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
-    return cols
-
-
-def col2im_indices(cols, x_shape, field_height=3, field_width=3, padding=1,
-                   stride=1):
-    """ An implementation of col2im based on fancy indexing and np.add.at """
-    N, C, H, W = x_shape
-    H_padded, W_padded = H + 2 * padding, W + 2 * padding
-    x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
-    k, i, j = get_im2col_indices(x_shape, field_height, field_width, padding, stride)
-    cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
-    cols_reshaped = cols_reshaped.transpose(2, 0, 1)
-    np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
-    if padding == 0:
-        return x_padded
-    else:
-        return x_padded[:, :, padding:-padding, padding:-padding]
-
-
 class MaxPoolingLayer(Layer):
     """
     MaxPoolingLayer implements MaxPool for each input channel of the input. A receptive
@@ -736,6 +684,13 @@ class MaxPoolingLayer(Layer):
         self.cache = None
 
     def fprop(self, inputs):
+        """
+        implementation of max-pooling using im2col:
+        converting the input array into columns, extent the input array into multiple strips before
+        taking the maximum for each extent (receptive field)
+        :param inputs: ndarray of shape [num_batch, input_channel, input_dim1, input_dim2]
+        :return:
+        """
         batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = inputs.shape
         # Check that the input passes is similar ot what was declared
         assert _num_input_chn == self.d0
@@ -791,6 +746,56 @@ class MaxPoolingLayer(Layer):
                         self.f, self.stride)
         )
 
+# =====================HELPER FUNCTIONS======================================#
+def get_im2col_indices(x_shape, field_height, field_width, padding=1, stride=1):
+    # First figure out what the size of the output should be
+    N, C, H, W = x_shape
+    assert (H + 2 * padding - field_height) % stride == 0
+    assert (W + 2 * padding - field_height) % stride == 0
+    out_height = int((H + 2 * padding - field_height) / stride + 1)
+    out_width = int((W + 2 * padding - field_width) / stride + 1)
+
+    i0 = np.repeat(np.arange(field_height), field_width)
+    i0 = np.tile(i0, C)
+    i1 = stride * np.repeat(np.arange(out_height), out_width)
+    j0 = np.tile(np.arange(field_width), field_height * C)
+    j1 = stride * np.tile(np.arange(out_width), out_height)
+    i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+    j = j0.reshape(-1, 1) + j1.reshape(1, -1)
+
+    k = np.repeat(np.arange(C), field_height * field_width).reshape(-1, 1)
+
+    return (k.astype(int), i.astype(int), j.astype(int))
+
+
+def im2col_indices(x, field_height, field_width, padding=1, stride=1):
+    """ An implementation of im2col based on some fancy indexing """
+    # Zero-pad the input
+    p = padding
+    x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
+
+    k, i, j = get_im2col_indices(x.shape, field_height, field_width, padding, stride)
+
+    cols = x_padded[:, k, i, j]
+    C = x.shape[1]
+    cols = cols.transpose(1, 2, 0).reshape(field_height * field_width * C, -1)
+    return cols
+
+
+def col2im_indices(cols, x_shape, field_height=3, field_width=3, padding=1,
+                   stride=1):
+    """ An implementation of col2im based on fancy indexing and np.add.at """
+    N, C, H, W = x_shape
+    H_padded, W_padded = H + 2 * padding, W + 2 * padding
+    x_padded = np.zeros((N, C, H_padded, W_padded), dtype=cols.dtype)
+    k, i, j = get_im2col_indices(x_shape, field_height, field_width, padding, stride)
+    cols_reshaped = cols.reshape(C * field_height * field_width, -1, N)
+    cols_reshaped = cols_reshaped.transpose(2, 0, 1)
+    np.add.at(x_padded, (slice(None), k, i, j), cols_reshaped)
+    if padding == 0:
+        return x_padded
+    else:
+        return x_padded[:, :, padding:-padding, padding:-padding]
 
 class ReluLayer(Layer):
     """Layer implementing an element-wise rectified linear transformation."""
@@ -1290,7 +1295,10 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
         For inputs `x`, outputs `y`, kernels `K` and biases `b` the layer
         corresponds to `y = conv2d(x, K) + b`.
         """
-        return convol2d_forward(inputs, self.kernels, self.biases, self.stride)
+        N = inputs.shape[0]
+        outputs = np.zeros((N, self.d1, self.h1, self.w1))
+        return convol2d_forward(outputs, inputs, self.kernels, self.biases, self.stride, N, self.f1, self.f1, self.f2,
+                                self.h1, self.w1)
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -1309,10 +1317,9 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-
         dX = np.zeros_like(inputs)
-        dX = convol2d_backward(dX, inputs, self.kernels, grads_wrt_outputs, self.stride)
-        return dX
+        return convol2d_backward(dX, inputs, self.kernels, grads_wrt_outputs, self.stride, inputs.shape[0], self.d1,
+                                 self.d0, self.h0, self.w0, self.h1, self.w1, self.f1, self.f2)
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
@@ -1328,10 +1335,8 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
         _grads_wrt_biases = np.sum(grads_wrt_outputs, axis=(0, 2, 3))
         grads_wrt_biases = _grads_wrt_biases.reshape(self.d1, )
 
-        grads_wrt_kernels = _grads_kernels(self.kernels_shape,
-                                           np.zeros(self.kernels_shape),
-                                           grads_wrt_outputs, inputs,
-                                           self.stride, self.h1, self.w1)
+        grads_wrt_kernels = _grads_kernels(np.zeros(self.kernels_shape), grads_wrt_outputs, inputs, self.stride,
+                                           self.d1, self.d0, self.h1, self.w1, self.f1, self.f2)
 
         return [grads_wrt_kernels, grads_wrt_biases]
 
@@ -1355,34 +1360,55 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
 
 
 @jit(nopython=True)
-def convol2d_forward(inputs, kernels, biases, S):
-    N, C2, dim1, dim2 = inputs.shape
-    F, C1, kdim1, kdim2 = kernels.shape
-    outdim1 = int(1 + (dim1 - kdim1) / S)
-    outdim2 = int(1 + (dim2 - kdim2) / S)
-    output = np.zeros((N, F, outdim1, outdim2))
-    assert biases.shape[0] == F
-    assert C1 == C2
-    for n in range(N):  # First, iterate over all the images
-        for f in range(F):  # Second, iterate over all the kernels
-            for k in range(outdim1):
-                for l in range(outdim2):
-                    output[n, f, k, l] = np.sum(
-                        inputs[n, :, k * S:k * S + kdim1, l * S:l * S + kdim2]
+def convol2d_forward(outputs, inputs, kernels, biases, S, N, F, kdim1, kdim2, outdim1, outdim2):
+    """
+
+    Calculates the forward cross-correlation pass, using numba to speed the
+    for-loop up!
+    :param inputs: ndarray of [batch_size, input_channel, input_dim1, input_dim2]
+    :param kernels: ndarray of [num_feature_maps, input_channel, kernel_dim1, kernel_dim2]
+    :param biases: vector of biases of shape num_feature_maps
+    :param S: stride of the convolution
+    :return: ndarray of [batch_size, num_feature_maps, output_dim1, output_dim2]
+    where : output_dim1 = S * (input_dim1 - kernel_dim1) + 1
+            output_dim2 = S * (input_dim2 - kernel_dim2) + 1
+    """
+    # Go through each image:
+    for n in range(N):
+        # For each output feature map:
+        for f in range(F):
+            # Next two for loops: each dimension of the feature map
+            for fm_d1 in range(outdim1):
+                for fm_d2 in range(outdim2):
+                    outputs[n, f, fm_d1, fm_d2] = np.sum(
+                        inputs[n, :, fm_d1 * S:fm_d1 * S + kdim1,
+                        fm_d2 * S:fm_d2 * S + kdim2]  # the corresponding image depth
                         * kernels[f, :]) + biases[f]
-    return output
+    return outputs
 
 
 @jit(nopython=True)
-def convol2d_backward(dX, inputs, kernels, grads_wrt_outputs, S):
-    N, C2, indim1, indim2 = inputs.shape
-    F, C1, kdim1, kdim2 = kernels.shape
-    assert C1 == C2
-    outdim1 = int(1 + (indim1 - kdim1) / S)
-    outdim2 = int(1 + (indim2 - kdim2) / S)
-
-    for nprime in range(N):
-        for cprime in range(C1):
+def convol2d_backward(dX, inputs, kernels, grads_wrt_outputs, S, N, F, channel, indim1, indim2, outdim1, outdim2,
+                      kdim1, kdim2):
+    """
+    Accelarated implementing of a naive backward propagation using numba
+    :param dX: gradient wrt to layer input x
+    :param inputs: ndarray of [batch_size, num_channels, input_dim1, input_dim2]
+    :param kernels: weight matrices; ndarray of [num_feature_maps, num_channels, kernel_dim1, kernel_dim2]
+    :param grads_wrt_outputs: gradients wrt to layer output
+    :param S: convolution stride
+    :param N: equivalent to inputs' batch_size
+    :param channel: input channel
+    :param indim1: input dimension 1 = height, h0
+    :param indim2: input dimension 2 = width, w0
+    :param outdim1: output dimension 1 = h1
+    :param outim2: output dimension 2 = w1
+    :param kdim1: kernel dimension 1 = f1
+    :param kdim2: kernel dimension 2 = f2
+    :return: dX
+    """
+    for n in range(N):
+        for c in range(channel):
             for i in range(indim1):
                 for j in range(indim2):
                     for f in range(F):
@@ -1390,28 +1416,36 @@ def convol2d_backward(dX, inputs, kernels, grads_wrt_outputs, S):
                             for l in range(outdim2):
                                 for p in range(kdim1):
                                     for q in range(kdim2):
-                                        if (p + k * S == i) & (
-                                                        q + S * l == j):
-                                            dX[nprime, cprime, i,
-                                               j] += grads_wrt_outputs[
-                                                         nprime, f, k, l] * kernels[
-                                                         f, cprime, p, q]
+                                        if (p + k * S == i) & (q + S * l == j):
+                                            dX[n, c, i, j] += grads_wrt_outputs[
+                                                                  n, f, k, l] * kernels[
+                                                                  f, c, p, q]
     return dX
 
 
 @jit(nopython=True)
-def _grads_kernels(kernels_shape, grads_wrt_kernels, grads_wrt_outputs, inputs,
-                   stride, h1, w1):
-    F, C, kdim1, kdim2 = kernels_shape
-    S = stride
-    for fprime in range(F):
-        for cprime in range(C):
+def _grads_kernels(output, grads_wrt_outputs, inputs, S, F, chn, outdim1, outdim2, kdim1, kdim2):
+    """
+    Calculate the kernel's gradient using numba and naive implementation
+    :param output: same shape as kernels
+    :param grads_wrt_outputs:  grads from previous layer to output
+    :param inputs: the x = [batch_size, num_channel, input_dim1, input_dim2]
+    :param S: stride of convolution
+    :param F: number of feature maps
+    :param chn:  number of input channel = d0
+    :param outdim1: = w1
+    :param outdim2: = h1
+    :param kdim1: kernel dimension 1
+    :param kdim2: kernel dimension 2
+    :return: gradients wrt kernel
+    """
+    for f in range(F):
+        for c in range(chn):
             for i in range(kdim1):
                 for j in range(kdim2):
-                    x_t = inputs[:, cprime, i:i + h1 * S:S, j:j + w1 * S:S]
-                    grads_wrt_kernels[fprime, cprime, i, j] = np.sum(
-                        grads_wrt_outputs[:, fprime, :, :] * x_t)
-    return grads_wrt_kernels
+                    output[f, c, i, j] = np.sum(
+                        grads_wrt_outputs[:, f, :, :] * inputs[:, c, i:i + outdim1 * S:S, j:j + outdim2 * S:S])
+    return output
 
 
 class MaxPoolingLayer_NUMBA(Layer):
@@ -1434,7 +1468,6 @@ class MaxPoolingLayer_NUMBA(Layer):
         assert (input_dim_2 - extent) % self.stride == 0
         self.h1 = int((input_dim_1 - extent) / self.stride + 1)
         self.w1 = int((input_dim_2 - extent) / self.stride + 1)
-
         self.cache = None
 
     def fprop(self, inputs):
@@ -1443,9 +1476,7 @@ class MaxPoolingLayer_NUMBA(Layer):
         assert _num_input_chn == self.d0
         assert _input_dim_1 == self.h0
         assert _input_dim_2 == self.w0
-
-        output = maxpool_forward(inputs, self.d0, self.h1, self.w1, self.stride, self.f)
-        return output
+        return maxpool_forward(inputs, self.d0, self.h1, self.w1, self.stride, self.f)
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         batch_size, _num_input_chn, _input_dim_1, _input_dim_2 = grads_wrt_outputs.shape
@@ -1453,8 +1484,7 @@ class MaxPoolingLayer_NUMBA(Layer):
         assert _num_input_chn == self.d0  # the number of output channel is the same!
         assert _input_dim_1 == self.h1
         assert _input_dim_2 == self.w1
-        dX = maxpool_backward(inputs, grads_wrt_outputs, self.d0, self.h1, self.w1, self.stride, self.f)
-        return dX
+        return maxpool_backward(inputs, grads_wrt_outputs, self.d0, self.h1, self.w1, self.stride, self.f)
 
     def __repr__(self):
         return (
@@ -1470,29 +1500,57 @@ class MaxPoolingLayer_NUMBA(Layer):
 
 
 @jit(nopython=True)
-def maxpool_forward(inputs, d0, h1, w1, S, extent):
+def maxpool_forward(inputs, chn, h1, w1, S, extent):
+    """
+    Take the max over a recpetive field of [extent x extent] across the input image.
+    In the input have more than one channel, the maximum is calculated for
+    each channel, instead of the entire depth. Hence the output for the forward propagation
+    has the same number of channels as the input (d0)
+
+    The output of the forward pass depends on the size of the input
+    :param inputs: ndarray [batch_size, input_channel, input_dim1, input_dim2]
+    :param chn: input_channel
+    :param h1:  output dimension 1
+    :param w1: output dimension 2
+    :param S: stride
+    :param extent: size of receptive field
+    :return: the maximum of each receptive field across the image
+    """
     N = inputs.shape[0]
-    out = np.zeros((N, d0, h1, w1))
+    out = np.zeros((N, chn, h1, w1))
     for n in range(N):
-        for c in range(d0):
+        for c in range(chn):
             for k in range(h1):
                 for l in range(w1):
-                    out[n, c, k, l] = np.max(
-                        inputs[n, c, k * S:k * S + extent, l * S:l * S + extent])
+                    x_pooling = inputs[n, c, k * S:k * S + extent, l * S:l * S + extent]
+                    out[n, c, k, l] = np.max(x_pooling)
     return out
 
 
 @jit(nopython=True)
-def maxpool_backward(inputs, grads_wrt_outputs, d0, h1, w1, S, extent):
+def maxpool_backward(inputs, grads_wrt_outputs, chn, h1, w1, S, extent):
+    """
+    Similar to relu that takes the maximum, we do not have any calculations to compute,
+    but to check which element contributed to the maximum, and hence have to be responsible
+    for the gradients wrt output.
+
+    :param inputs: input to the layer (x)
+    :param grads_wrt_outputs: gradients wrt y
+    :param d0: number of input channel
+    :param h1: output dimension 1
+    :param w1: output dimension 2
+    :param S: stride
+    :param extent: size of receptive field
+    :return: the gradients that have to be used for the previous layer
+    """
     N = inputs.shape[0]
     dX = np.zeros_like(inputs)
-    for nprime in range(N):
-        for cprime in range(d0):
+    for n in range(N):
+        for c in range(chn):
             for k in range(h1):
                 for l in range(w1):
-                    x_pooling = inputs[nprime, cprime, k * S:k * S + extent, l * S:l * S + extent]
+                    x_pooling = inputs[n, c, k * S:k * S + extent, l * S:l * S + extent]
                     maxi = np.max(x_pooling)
                     x_mask = x_pooling == maxi
-                    dX[nprime, cprime, k * S:k * S + extent, l * S:l * S + extent] += grads_wrt_outputs[
-                                                                                          nprime, cprime, k, l] * x_mask
+                    dX[n, c, k * S:k * S + extent, l * S:l * S + extent] += grads_wrt_outputs[n, c, k, l] * x_mask
     return dX
