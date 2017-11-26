@@ -32,7 +32,7 @@ input_dim, output_dim, hidden_dim = 784, 47, 400
 # ==================================================================================
 func = ELULayer()
 i = 4  # + 1 = 5 layers
-learning_Rates = [.01, .05, .1, .2]
+learning_Rates = [.1, .5, 1]
 # ==================================================================================
 for trial in [3]:
     experiment_BN = {}
@@ -59,8 +59,7 @@ for trial in [3]:
         ]
 
         # create the MLP:
-        model = MultipleLayerModel(input_layer + each_hidden_layer * i +
-                                   output_layer)
+        model = MultipleLayerModel(input_layer + each_hidden_layer * i + output_layer)
         error = CrossEntropyLogSoftmaxError()
         learning_rule = GradientDescentLearningRule(learning_rate=learning_Rate)
 
