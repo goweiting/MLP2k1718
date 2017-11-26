@@ -9,7 +9,9 @@ import time
 import logging
 from collections import OrderedDict
 import numpy as np
-#import tqdm
+from mlp.layers import LayerWithParameters, StochasticLayerWithParameters
+
+# import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +51,9 @@ class Optimiser(object):
         if data_monitors is not None:
             self.data_monitors.update(data_monitors)
         self.notebook = notebook
-        #if notebook:
+        # if notebook:
         #    self.tqdm_progress = tqdm.tqdm_notebook
-        #else:
+        # else:
         #    self.tqdm_progress = tqdm.tqdm
 
     def do_training_epoch(self):
@@ -157,9 +159,13 @@ class Optimiser(object):
 
 class EarlyStoppingOptimiser(object):
     """
-    Early Stopping Optimiser checks the training and validation accuracy every n epoch,
-    after the first m epochs had elapsed.
-    If the model is starting to overfit the data, we stop the epoch and yield the model.
+    Early Stopping Optimiser checks the training and validation accuracy every <patience> epoch,
+    after the first <steps>*<patience> epochs had elapsed.
+    The model must not be improving for <steps> of <patience> epoch before terminating.
+
+    the smaller <patience> is, the more accumulative improvements the model must perform.
+    a large <patience> allows for the model to experience some pertubations (such as sudden good trainig/validation)
+    dataset before decreasing.
     """
 
     def __init__(self, model, error, learning_rule, train_dataset,
@@ -196,10 +202,7 @@ class EarlyStoppingOptimiser(object):
         if data_monitors is not None:
             self.data_monitors.update(data_monitors)
         self.notebook = notebook
-        if notebook:
-            self.tqdm_progress = tqdm.tqdm_notebook
-        else:
-            self.tqdm_progress = tqdm.tqdm
+
         # FOR UPs generalisation error:
         self.steps = steps
         self.patience = patience
@@ -212,15 +215,13 @@ class EarlyStoppingOptimiser(object):
         respect to all the model parameters and then updates the model
         parameters according to the learning rule.
         """
-        # with self.tqdm_progress(total=self.train_dataset.num_batches) as train_progress_bar:
-        #     train_progress_bar.set_description("Epoch Progress")
         for inputs_batch, targets_batch in self.train_dataset:
             activations = self.model.fprop(inputs_batch)
             grads_wrt_outputs = self.error.grad(activations[-1], targets_batch)
+
             grads_wrt_params = self.model.grads_wrt_params(
                 activations, grads_wrt_outputs)
             self.learning_rule.update_params(grads_wrt_params)
-            # train_progress_bar.update(1)
 
     def eval_monitors(self, dataset, label):
         """Evaluates the monitors for the given dataset.
@@ -270,7 +271,14 @@ class EarlyStoppingOptimiser(object):
         if self.test_dataset is not None:  # INCLUDE THE TEST STATISTICS!
             epoch_stats.update(self.eval_monitors(
                 self.test_dataset, '(test)'))
-        return epoch_stats
+        # STORE THE GRADIENTS:
+        params_stats = OrderedDict()
+        for i, layer in enumerate(self.model.layers):
+            # Go through each layer with parameters to get the
+            if isinstance(layer, LayerWithParameters) or isinstance(layer, StochasticLayerWithParameters):
+                param = layer.params
+                params_stats.update((i, param))
+        return epoch_stats, params_stats
 
     def log_stats(self, epoch, epoch_time, stats):
         """Outputs stats for a training epoch to a logger.
@@ -300,30 +308,33 @@ class EarlyStoppingOptimiser(object):
             recorded to their column index in the array.
         """
         start_train_time = time.time()
-        stats = self.get_epoch_stats()
-        e_val = [stats['error(valid)']]  # stores the validation error for each epoch
-        run_stats = [list(stats.values())]  # THE FIRST EPOCH_STATS IS NEGLIGIBLE HERE
-        # with self.tqdm_progress(total=num_epochs) as progress_bar:
-        #     progress_bar.set_description("Experiment Progress")
+
+        # zeroth epoch:
+        epoch_stat, param_stat = self.get_epoch_stats()  # this will evaluate the model!
+        e_val = [epoch_stat['error(valid)']]  # stores the validation error for each epoch
+        run_stats = [list(epoch_stat.values())]  # THE FIRST EPOCH_STATS IS NEGLIGIBLE HERE
+        param_stats = [param_stat]  # Store as an ordered Dict
         early_stop = False
         epoch = 0
+        models = {}
+        best_model, _epoch = None, None
+
         while not early_stop and epoch <= max_num_epochs:
             epoch += 1
             start_time = time.time()
             self.do_training_epoch()
             epoch_time = time.time() - start_time
-            self.log_stats(epoch, epoch_time, stats)  # PRINT THE STATS
 
             # DO EARLY STOPPING MONITORING:
-            stats = self.get_epoch_stats()
+            stats, params = self.get_epoch_stats()
+            self.log_stats(epoch, epoch_time, stats)  # PRINT THE STATS
             e_val.append(stats['error(valid)'])
 
             if epoch > self.patience * self.steps:
                 # Start checking UP from this epoch:
+                models[epoch] = self.model  # Append for later storage of best model
                 _epoch = epoch
-                for i in range(self.steps):
-                    # compare s successive strips
-
+                for i in range(self.steps):  # compare s successive strips of size <patience>
                     prev = _epoch - self.patience
                     if e_val[_epoch] > e_val[prev]:
                         logger.info(
@@ -333,15 +344,18 @@ class EarlyStoppingOptimiser(object):
                         if i == self.steps - 1:
                             logger.info('EARLY STOPPING')  # STOP!
                             early_stop = True
+                            best_model = models[prev]  ## TO CHECK
                     else:
                         # No point checking since require all successive strips to satisfy the condition
                         break
 
             # Save the epoch stats:
             run_stats.append(list(stats.values()))
-            # progress_bar.update(1)
+            param_stats.append(params)
 
         finish_train_time = time.time()
         total_train_time = finish_train_time - start_train_time
+
         # RETURN THE EARLY STOPPED EPOCH TOO:
-        return np.array(run_stats), {k: i for i, k in enumerate(stats.keys())}, total_train_time, epoch
+        return np.array(run_stats), {k: i for i, k in
+                                     enumerate(epoch_stat.keys())}, total_train_time, _epoch, best_model, param_stat
