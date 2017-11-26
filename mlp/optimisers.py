@@ -9,7 +9,7 @@ import time
 import logging
 from collections import OrderedDict
 import numpy as np
-import tqdm
+#import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +49,10 @@ class Optimiser(object):
         if data_monitors is not None:
             self.data_monitors.update(data_monitors)
         self.notebook = notebook
-        if notebook:
-            self.tqdm_progress = tqdm.tqdm_notebook
-        else:
-            self.tqdm_progress = tqdm.tqdm
+        #if notebook:
+        #    self.tqdm_progress = tqdm.tqdm_notebook
+        #else:
+        #    self.tqdm_progress = tqdm.tqdm
 
     def do_training_epoch(self):
         """Do a single training epoch.

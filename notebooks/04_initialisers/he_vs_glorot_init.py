@@ -5,10 +5,10 @@ from mlp.data_providers import EMNISTDataProvider
 from mlp.layers import *
 from mlp.errors import CrossEntropyLogSoftmaxError
 from mlp.models import MultipleLayerModel
-from mlp.initialisers import ConstantInit, GlorotUniformInit
+from mlp.initialisers import *
 from mlp.learning_rules import GradientDescentLearningRule, AdamLearningRule, RMSPropLearningRule
 from mlp.optimisers import Optimiser, EarlyStoppingOptimiser
-from mlp.helper import *
+from mlp.helper import train_model_and_plot_stats
 import pickle as pkl
 
 # Seed a random number generator
