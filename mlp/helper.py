@@ -4,6 +4,8 @@ from mlp.models import MultipleLayerModel
 from mlp.initialisers import *
 from mlp.learning_rules import *
 from mlp.optimisers import Optimiser
+from scipy.stats import wilcoxon
+from itertools import product
 
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
@@ -63,6 +65,48 @@ def numpy_fillna(data):
     out[:] = np.nan
     out[mask] = np.concatenate(np.array(data))
     return out
+
+def generatePairs(labels):
+    n = len(labels)
+    expLen = (n*(n-1)/2) # n choose 2
+    l1 = [(a,b) for (a,b) in product(labels,labels) if a != b]
+    l2 = []
+    for (a,b) in l1:
+        if (a,b) not in l2:
+            l2.append((a,b))
+        if (b,a) in l2:
+            l2.remove((b,a))
+    assert len(l2) == expLen
+    return l2
+
+def wilcoxonTest(stats):
+    """
+    Stats is a dictionary with keys as the labels, and  statistics for the variable used in the experiment
+    Each label is a dictionary, with keys as: val_err, val_acc, train_err, train_acc, test_acc.
+    
+    Methodology:
+    we do a Wilcoxon signed-rank test with p-value<0.001 to detect if performance of one parameter (label) 
+    is better than the other
+    """
+    # generate tuple of labels:
+    parameters = stats.keys()
+    testPars = generatePairs(parameters)
+    tVals = []
+    
+    # call wilcoxon test:
+    for (a,b) in testPars:
+        try:
+            x = np.mean(stats[a]['val_acc'], axis=0)
+            y = np.mean(stats[b]['val_acc'], axis=0)
+        except IndexError:
+            x = stats[a]['val_acc']['mean']
+            y = stats[b]['val_acc']['mean']
+        t = wilcoxon(x,y)
+        if t.pvalue >= 0.05:
+            print(a,b,t)
+        tVals.append((a,b,t))
+    return tVals
+
 
 
 def train_model_and_plot_stats(model,
