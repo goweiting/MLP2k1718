@@ -3,7 +3,7 @@ from mlp.errors import CrossEntropyLogSoftmaxError
 from mlp.models import MultipleLayerModel
 from mlp.initialisers import *
 from mlp.learning_rules import *
-from mlp.optimisers import Optimiser
+from mlp.optimisers import Optimiser,EarlyStoppingOptimiser
 from scipy.stats import wilcoxon
 from itertools import product
 
@@ -118,26 +118,40 @@ def train_model_and_plot_stats(model,
                                num_epochs,
                                stats_interval,
                                notebook=False,
-                               displayGraphs=False):
+                               displayGraphs=False,
+                               earlyStop=False,
+                               steps=None,
+                               patience=None):
 
     # As well as monitoring the error over training also monitor classification
     # accuracy i.e. proportion of most-probable predicted classes being equal to targets
     data_monitors = {'acc': lambda y, t: (y.argmax(-1) == t.argmax(-1)).mean()}
 
-    # Use the created objects to initialise a new Optimiser instance.
-    optimiser = Optimiser(
-        model,
-        error,
-        learning_rule,
-        train_data,
-        valid_data,
-        test_data,
-        data_monitors,
-        notebook=notebook)
-
-    # Run the optimiser for 5 epochs (full passes through the training set)
-    # printing statistics every epoch.
-    stats, keys, run_time = optimiser.train(num_epochs=num_epochs, stats_interval=stats_interval)
+    if earlyStop:
+        optimiser = EarlyStoppingOptimiser(model,
+                                           error,
+                                           learning_rule,
+                                           train_data,
+                                           valid_data,
+                                           test_data,
+                                           data_monitors,
+                                           notebook=notebook,
+                                           steps=steps, 
+                                           patience=patience)
+        
+    else:
+        # Use the created objects to initialise a new Optimiser instance.
+        optimiser = Optimiser(model,
+                              error,
+                              learning_rule,
+                              train_data,
+                              valid_data,
+                              test_data,
+                              data_monitors,
+                              notebook=notebook)
+    
+    # TRAINING
+    output = optimiser.train(num_epochs, stats_interval)
 
     if displayGraphs:
         # Plot the change in the validation and training set error over training.
@@ -161,7 +175,5 @@ def train_model_and_plot_stats(model,
                 label=k)
         ax_2.legend(loc=0)
         ax_2.set_xlabel('Epoch number')
-
-        return optimiser.model, stats, keys, run_time, fig_1, ax_1, fig_2, ax_2
-    else:
-        return optimiser.model, stats, keys, run_time
+        
+    return output

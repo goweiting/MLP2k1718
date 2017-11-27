@@ -272,12 +272,11 @@ class EarlyStoppingOptimiser(object):
             epoch_stats.update(self.eval_monitors(
                 self.test_dataset, '(test)'))
         # STORE THE GRADIENTS:
-        params_stats = OrderedDict()
+        params_stats = {}
         for i, layer in enumerate(self.model.layers):
             # Go through each layer with parameters to get the
             if isinstance(layer, LayerWithParameters) or isinstance(layer, StochasticLayerWithParameters):
-                param = layer.params
-                params_stats.update((i, param))
+                params_stats[i] =layer.params
         return epoch_stats, params_stats
 
     def log_stats(self, epoch, epoch_time, stats):
@@ -358,4 +357,4 @@ class EarlyStoppingOptimiser(object):
 
         # RETURN THE EARLY STOPPED EPOCH TOO:
         return np.array(run_stats), {k: i for i, k in
-                                     enumerate(epoch_stat.keys())}, total_train_time, _epoch, best_model, param_stat
+                                     enumerate(epoch_stat.keys())}, total_train_time, _epoch, best_model, param_stats
