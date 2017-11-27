@@ -82,7 +82,9 @@ for trial in range(1,4):
             num_epochs,
             stats_interval,
             notebook=False,
-            displayGraphs=False)
+            displayGraphs=False,
+            earlyStop=True,
+            steps=3, patience=5)
     
     
     #===================== pickle: =====================================#
