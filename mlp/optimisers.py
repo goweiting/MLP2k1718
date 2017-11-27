@@ -316,7 +316,7 @@ class EarlyStoppingOptimiser(object):
         early_stop = False
         epoch = 0
         models = {}
-        best_model, _epoch = None, None
+        _epoch = None
 
         while not early_stop and epoch <= max_num_epochs:
             epoch += 1
@@ -328,22 +328,27 @@ class EarlyStoppingOptimiser(object):
             stats, params = self.get_epoch_stats()
             self.log_stats(epoch, epoch_time, stats)  # PRINT THE STATS
             e_val.append(stats['error(valid)'])
-
+            models[epoch] = self.model  # Append for later return of best model
+            
             if epoch > self.patience * self.steps:
                 # Start checking UP from this epoch:
-                models[epoch] = self.model  # Append for later storage of best model
-                _epoch = epoch
+                _epoch = epoch # aargument for checking
                 for i in range(self.steps):  # compare s successive strips of size <patience>
                     prev = _epoch - self.patience
-                    if e_val[_epoch] > e_val[prev]:
+                    if e_val[_epoch] > e_val[prev]: # check the validation error! UP_s
                         logger.info(
                             'UP{}: error(valid) at {} = {:.2e} > at {} = {:.2e}'.format(i + 1, _epoch, e_val[_epoch],
                                                                                         prev, e_val[prev]))
-                        _epoch = prev
+                        
+                        # conditions for next strip:
                         if i == self.steps - 1:
-                            logger.info('EARLY STOPPING')  # STOP!
+                            logger.info('EARLY STOPPING')  # STOP!, we are done here!
                             early_stop = True
-                            best_model = models[prev]  ## TO CHECK
+                            _epoch = prev  
+                        else:
+                            # compare the next strip
+                            _epoch = prev  
+                        
                     else:
                         # No point checking since require all successive strips to satisfy the condition
                         break
@@ -357,4 +362,4 @@ class EarlyStoppingOptimiser(object):
 
         # RETURN THE EARLY STOPPED EPOCH TOO:
         return np.array(run_stats), {k: i for i, k in
-                                     enumerate(epoch_stat.keys())}, total_train_time, _epoch, best_model, param_stats
+                                     enumerate(epoch_stat.keys())}, total_train_time, _epoch, models[_epoch], param_stats

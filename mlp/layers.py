@@ -12,6 +12,7 @@ methods for getting and setting parameter and calculating gradients with
 respect to the layer parameters.
 """
 
+from numba import jit
 import numpy as np
 import mlp.initialisers as init
 from mlp import DEFAULT_SEED
@@ -358,10 +359,8 @@ class AffineLayerWithoutBias(LayerWithParameters):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.weights = weights_initialiser((self.output_dim, self.input_dim))
-        self.biases = biases_initialiser(self.output_dim)
         self.weights_penalty = weights_penalty
-        self.biases_penalty = biases_penalty
-
+        
     def fprop(self, inputs):
         """Forward propagates activations through the layer transformation.
 
@@ -437,56 +436,37 @@ class AffineLayerWithoutBias(LayerWithParameters):
         return 'AffineLayerWithoutBias(input_dim={0}, output_dim={1})'.format(
             self.input_dim, self.output_dim)
 
-
 class BatchNormalizationLayer(StochasticLayerWithParameters):
     """Layer implementing an affine tranformation of its inputs.
 
     This layer is parameterised by a weight matrix and bias vector.
     """
 
-    def __init__(self, input_dim, rng=None, momentum=.9):
+    def __init__(self, input_dim, rng=None):
         """Initialises a parameterised affine layer.
+
         Args:
-            input_dim : Dimension of the input layer
+            input_dim (int): Dimension of inputs to the layer.
+            output_dim (int): Dimension of the layer outputs.
+            weights_initialiser: Initialiser for the weight parameters.
+            biases_initialiser: Initialiser for the bias parameters.
+            weights_penalty: Weights-dependent penalty term (regulariser) or
+                None if no regularisation is to be applied to the weights.
+            biases_penalty: Biases-dependent penalty term (regulariser) or
+                None if no regularisation is to be applied to the biases.
         """
         super(BatchNormalizationLayer, self).__init__(rng)
         self.beta = np.random.normal(size=(input_dim))
         self.gamma = np.random.normal(size=(input_dim))
-        self.epsilon = 0.00001
-        self.momentum = momentum
-        self.cache = None, None, None, 0., 0.
+        self.eps = 0.00001
+        self.cache = None
         self.input_dim = input_dim
 
     def fprop(self, inputs, stochastic=True):
-        """Forward propagates inputs through a layer.
-        The implementation uses the running mean and running variance to
-        calculate the population variance and population mean for test time
-        """
-        if stochastic:
-            # TRAINING
-            # calculate the mean for each batch. input is of shape (batch_size, input_dim)
-            xhat, mu, var, running_mean, running_var = self.cache
+        """Forward propagates inputs through a layer."""
 
-            mu = np.mean(inputs, axis=0)  # Mean of each feature
-            var = np.var(inputs, axis=0)  # variance of each feature
-            xhat = (inputs - mu) / np.sqrt(var + self.epsilon)  # normalise inputs
-
-            running_mean *= self.momentum
-            running_mean += (1. - self.momentum) * mu
-            running_var *= self.momentum
-            running_var += (1. - self.momentum) * var
-
-            self.cache = (xhat, mu, var, running_mean, running_var)
-
-        else:
-            # INFERENCE!
-            # using the population statistics instead:
-            xhat, mu, var, running_mean, running_var = self.cache
-            xhat = (inputs - running_mean) * np.sqrt(running_var + self.epsilon)
-
-        # Same step for both:
-        output = self.gamma * xhat + self.beta
-        return output
+        norm = (inputs - np.mean(inputs,axis=0)) / np.sqrt(np.var(inputs,axis=0) + self.eps)
+        return norm*self.gamma + self.beta
 
     def bprop(self, inputs, outputs, grads_wrt_outputs):
         """Back propagates gradients through a layer.
@@ -505,16 +485,13 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
             Array of gradients with respect to the layer inputs of shape
             (batch_size, input_dim).
         """
-        xhat, mu, var, running_mean, running_var = self.cache
-        N, D = inputs.shape
-        xmu = inputs - mu
-        dxhat = grads_wrt_outputs * self.gamma
-        invar = 1./ np.sqrt(var+self.epsilon)
-        dX = (1./N) * invar * (N*dxhat - np.sum(dxhat, axis=0) - xhat*np.sum(dxhat*xhat, axis=0))
 
-        assert dX.shape[0] == N
-        assert dX.shape[1] == D
-        return dX
+        N = inputs.shape[0]
+        mu = np.mean(inputs, axis=0)
+        xmu = inputs - mu
+        var = np.var(inputs, axis=0)
+        dh = (1. / N) * self.gamma * (var + self.eps)**(-.5) * (N *grads_wrt_outputs - np.sum(grads_wrt_outputs, axis=0) -  xmu * (var + self.eps)**(-1.0) * np.sum(grads_wrt_outputs * xmu, axis=0))
+        return dh
 
     def grads_wrt_params(self, inputs, grads_wrt_outputs):
         """Calculates gradients with respect to layer parameters.
@@ -526,11 +503,13 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
 
         Returns:
             list of arrays of gradients with respect to the layer parameters
-            `[grads_wrt_gamma, grads_wrt_beta]`.
+            `[grads_wrt_weights, grads_wrt_biases]`.
         """
-        xhat, mu, var, running_mean, running_var = self.cache
+        N = inputs.shape[0]
+        mu = np.mean(inputs, axis=0)
+        var = np.var(inputs, axis=0)
         dbeta = np.sum(grads_wrt_outputs, axis=0)
-        dgamma = np.sum(grads_wrt_outputs * xhat, axis=0)
+        dgamma = np.sum((inputs - mu) * (var + self.eps)**(-1. / 2.) * grads_wrt_outputs, axis=0)
         return [dgamma, dbeta]
 
     def params_penalty(self):
@@ -555,8 +534,8 @@ class BatchNormalizationLayer(StochasticLayerWithParameters):
     def __repr__(self):
         return 'BatchNormalizationLayer(input_dim={0})'.format(
             self.input_dim)
-
-    
+   
+ 
 class SigmoidLayer(Layer):
     """Layer implementing an element-wise logistic sigmoid transformation."""
 
@@ -697,25 +676,6 @@ class ELULayer(Layer):
         Given gradients with respect to the outputs of the layer calculates the
         gradients with respect to the layer inputs.
         """
-        ## Clipping:
-        # grads_wrt_outputs = np.where(np.isnan(grads_wrt_outputs), -1e-25, grads_wrt_outputs)
-        # grads_wrt_outputs = np.where(np.isinf(grads_wrt_outputs), 1e25, grads_wrt_outputs)
-
-        ## positive_gradients = (outputs >= 0.) * grads_wrt_outputs
-        # positive_gradients = np.where(outputs >= 0., 1. ,0.) * grads_wrt_outputs
-        ## outputs_to_use = (outputs < 0.) * outputs
-        # outputs_to_use = np.where(outputs < 0., 1., 0.) * outputs
-        # negative_gradients = (outputs_to_use + self.alpha)
-        ## negative_gradients[outputs >= 0.] = 0.
-        # negative_gradients = np.where(outputs >= 0., 0., negative_gradients)
-        # negative_gradients = negative_gradients * grads_wrt_outputs
-        # gradients = positive_gradients + negative_gradients
-
-        ## Gradient clipping:
-        # gradients = np.where(np.isnan(gradients), -1e-25, gradients)
-        # gradients = np.where(np.isinf(gradients), 1e25, gradients)
-
-
         positive_gradients = (outputs >= 0) * grads_wrt_outputs
         outputs_to_use = (outputs < 0) * outputs
         negative_gradients = (outputs_to_use + self.alpha)
@@ -919,7 +879,7 @@ class DropoutLayer(StochasticLayer):
             share_across_batch: Whether to use same dropout mask across
                 all inputs in a batch or use per input masks.
         """
-        super(DropoutLayer, self).__init__(rng)
+        super(self.__class__, self).__init__(rng)
         assert incl_prob > 0. and incl_prob <= 1.
         self.incl_prob = incl_prob
         self.share_across_batch = share_across_batch

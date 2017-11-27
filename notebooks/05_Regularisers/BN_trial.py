@@ -12,31 +12,31 @@ import pickle as pkl
 # Seed a random number generator
 seed = 10102016
 rng = np.random.RandomState(seed)
-batch_size = 100
 # Set up a logger object to print info about the training run to stdout
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.handlers = [logging.StreamHandler()]
 
-# Create data provider objects for the MNIST data set
-train_data = EMNISTDataProvider('train', batch_size=batch_size, rng=rng)
-valid_data = EMNISTDataProvider('valid', batch_size=batch_size, rng=rng)
-test_data = EMNISTDataProvider('test', batch_size=batch_size, rng=rng)
-
 # setup hyperparameters
-learning_rate = 0.01
-num_epochs = 80
+learning_rate = 0.1
+num_epochs = 150
 stats_interval = 1
 input_dim, output_dim, hidden_dim = 784, 47, 400
+i = 4  # + 1 = 5 layers
+
 
 # ==================================================================================
+# VARIABLES
 func = ELULayer()
-i = 4  # + 1 = 5 layers
-learning_Rates = [.1, .5, 1]
+batch_sizes = [400,200,100]
 # ==================================================================================
-for trial in [3]:
+for trial in [1,2,3]:
     experiment_BN = {}
-    for learning_Rate in learning_Rates:
+    for batch_size in batch_sizes:
+        # Create data provider objects for the MNIST data set
+        train_data = EMNISTDataProvider('train', batch_size=batch_size, rng=rng)
+        valid_data = EMNISTDataProvider('valid', batch_size=batch_size, rng=rng)
+        test_data = EMNISTDataProvider('test', batch_size=batch_size, rng=rng)
         train_data.reset()
         test_data.reset()
         valid_data.reset()
@@ -46,22 +46,24 @@ for trial in [3]:
         biases_init = ConstantInit(0.)
 
         input_layer = [
-            AffineLayer(input_dim, hidden_dim, weights_init, biases_init)
+            AffineLayerWithoutBias(input_dim, hidden_dim, weights_init),
+            BatchNormalizationLayer(input_dim =hidden_dim, rng=rng)
         ]
         output_layer = [
-            ELULayer(),
+            ReluLayer(),
             AffineLayer(hidden_dim, output_dim, weights_init, biases_init) # NO BN TOWARDS SOFTMAX
         ]
         each_hidden_layer = [
-            ELULayer(),
-            AffineLayer(hidden_dim, hidden_dim, weights_init, biases_init),
+            ReluLayer(),
+            AffineLayerWithoutBias(hidden_dim, hidden_dim, weights_init),
             BatchNormalizationLayer(input_dim=hidden_dim, rng=rng) # BN AFTER OUTPUT == BN FOR INPUT TO NEXT LAYER
+            
         ]
 
         # create the MLP:
         model = MultipleLayerModel(input_layer + each_hidden_layer * i + output_layer)
         error = CrossEntropyLogSoftmaxError()
-        learning_rule = GradientDescentLearningRule(learning_rate=learning_Rate)
+        learning_rule = GradientDescentLearningRule(learning_rate=.1)
 
         experiment_BN[learning_Rate] = train_model_and_plot_stats(model,
                                                                    error,
@@ -72,5 +74,8 @@ for trial in [3]:
                                                                    num_epochs,
                                                                    stats_interval,
                                                                    notebook=False,
-                                                                   displayGraphs=False)
-    pkl.dump(experiment_BN, open('BN_LR_{}.pkl'.format(trial), 'wb'), protocol=-1)
+                                                                   displayGraphs=False,
+                                                                   earlyStop=True,
+                                                                   steps=3,
+                                                                   patience=5)
+    pkl.dump(experiment_BN, open('BN_BATCHSIZE_SGD_1e-1_{}.pkl'.format(trial), 'wb'), protocol=-1)
