@@ -3,7 +3,9 @@ from mlp.errors import CrossEntropyLogSoftmaxError
 from mlp.models import MultipleLayerModel
 from mlp.initialisers import *
 from mlp.learning_rules import *
-from mlp.optimisers import Optimiser
+from mlp.optimisers import Optimiser,EarlyStoppingOptimiser
+from scipy.stats import wilcoxon
+from itertools import product
 
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
@@ -64,6 +66,60 @@ def numpy_fillna(data):
     out[mask] = np.concatenate(np.array(data))
     return out
 
+def generatePairs(labels):
+    n = len(labels)
+    expLen = (n*(n-1)/2) # n choose 2
+    l1 = [(a,b) for (a,b) in product(labels,labels) if a != b]
+    l2 = []
+    for (a,b) in l1:
+        if (a,b) not in l2:
+            l2.append((a,b))
+        if (b,a) in l2:
+            l2.remove((b,a))
+    assert len(l2) == expLen
+    return l2
+
+def wilcoxonTest(stats):
+    """
+    Stats is a dictionary with keys as the labels, and  statistics for the variable used in the experiment
+    Each label is a dictionary, with keys as: val_err, val_acc, train_err, train_acc, test_acc.
+    
+    Methodology:
+    we do a Wilcoxon signed-rank test with p-value<0.001 to detect if performance of one parameter (label) 
+    is better than the other
+    """
+    # generate tuple of labels:
+    parameters = stats.keys()
+    testPars = generatePairs(parameters)
+    tVals = []
+    
+    # call wilcoxon test:
+    for (a,b) in testPars:
+        try:
+            x = np.mean(stats[a]['val_acc'], axis=0)
+            y = np.mean(stats[b]['val_acc'], axis=0)
+        except ValueError:
+            m_a = len(stats[a]['val_acc'])
+            m_b = len(stats[b]['val_acc'])
+            print(m_b,m_a)
+            if m_a < m_b:
+                x = np.mean(stats[a]['val_acc'], axis=0)
+                y = np.mean(stats[b]['val_acc'][:,:m_a], axis=0)
+            elif m_b < m_a:
+                x = np.mean(stats[a]['val_acc'][:, :m_b], axis=0)
+                y = np.mean(stats[b]['val_acc'], axis=0)
+
+        except IndexError:
+            x = stats[a]['val_acc']['mean']
+            y = stats[b]['val_acc']['mean']
+            
+        t = wilcoxon(x,y)
+        if t.pvalue >= 0.05:
+            print(a,b,t)
+        tVals.append((a,b,t))
+    return tVals
+
+
 
 def train_model_and_plot_stats(model,
                                error,
@@ -74,26 +130,40 @@ def train_model_and_plot_stats(model,
                                num_epochs,
                                stats_interval,
                                notebook=False,
-                               displayGraphs=False):
+                               displayGraphs=False,
+                               earlyStop=False,
+                               steps=None,
+                               patience=None):
 
     # As well as monitoring the error over training also monitor classification
     # accuracy i.e. proportion of most-probable predicted classes being equal to targets
     data_monitors = {'acc': lambda y, t: (y.argmax(-1) == t.argmax(-1)).mean()}
 
-    # Use the created objects to initialise a new Optimiser instance.
-    optimiser = Optimiser(
-        model,
-        error,
-        learning_rule,
-        train_data,
-        valid_data,
-        test_data,
-        data_monitors,
-        notebook=notebook)
-
-    # Run the optimiser for 5 epochs (full passes through the training set)
-    # printing statistics every epoch.
-    stats, keys, run_time = optimiser.train(num_epochs=num_epochs, stats_interval=stats_interval)
+    if earlyStop:
+        optimiser = EarlyStoppingOptimiser(model,
+                                           error,
+                                           learning_rule,
+                                           train_data,
+                                           valid_data,
+                                           test_data,
+                                           data_monitors,
+                                           notebook=notebook,
+                                           steps=steps, 
+                                           patience=patience)
+        
+    else:
+        # Use the created objects to initialise a new Optimiser instance.
+        optimiser = Optimiser(model,
+                              error,
+                              learning_rule,
+                              train_data,
+                              valid_data,
+                              test_data,
+                              data_monitors,
+                              notebook=notebook)
+    
+    # TRAINING
+    output = optimiser.train(num_epochs, stats_interval)
 
     if displayGraphs:
         # Plot the change in the validation and training set error over training.
@@ -117,7 +187,5 @@ def train_model_and_plot_stats(model,
                 label=k)
         ax_2.legend(loc=0)
         ax_2.set_xlabel('Epoch number')
-
-        return optimiser.model, stats, keys, run_time, fig_1, ax_1, fig_2, ax_2
-    else:
-        return optimiser.model, stats, keys, run_time
+        
+    return output
