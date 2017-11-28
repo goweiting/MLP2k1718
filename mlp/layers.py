@@ -435,6 +435,7 @@ class AffineLayerWithoutBias(LayerWithParameters):
     def __repr__(self):
         return 'AffineLayerWithoutBias(input_dim={0}, output_dim={1})'.format(
             self.input_dim, self.output_dim)
+
 # class BatchNormalizationLayer(StochasticLayerWithParameters):
 #     """Layer implementing an affine tranformation of its inputs.
 #
@@ -560,6 +561,7 @@ class AffineLayerWithoutBias(LayerWithParameters):
 # RUNNING VARIANCE FOR POPULATION STATISTICS IN THE INFERENCE STEP!
 # IN FACT IT IS NOT EVEN DOING ANY INFERENCE...
 #############################################################################
+
 class BatchNormalizationLayer(StochasticLayerWithParameters):
     """Layer implementing an affine tranformation of its inputs.
 
@@ -1002,7 +1004,7 @@ class DropoutLayer(StochasticLayer):
             share_across_batch: Whether to use same dropout mask across
                 all inputs in a batch or use per input masks.
         """
-        super(DropoutLayer, self).__init__(rng)
+        super(self.__class__, self).__init__(rng)
         assert incl_prob > 0. and incl_prob <= 1.
         self.incl_prob = incl_prob
         self.share_across_batch = share_across_batch
@@ -1255,8 +1257,7 @@ class ConvolutionalLayer_NUMBA(LayerWithParameters):
                 '    kernel_dim_1={4}, kernel_dim_2={5}\n'
                 ')'.format(self.d0, self.d1, self.w0, self.h0, self.f1,
                            self.f2))
-
-
+      
 @jit(nopython=True)
 def convol2d_forward(inputs, kernels, biases, S, N, F, kdim1, kdim2, outdim1, outdim2):
     """
@@ -1281,7 +1282,6 @@ def convol2d_forward(inputs, kernels, biases, S, N, F, kdim1, kdim2, outdim1, ou
             for fm_d1 in range(outdim1):
                 _one_upper = fm_d1 * S
                 _one_lower = fm_d1 * S + kdim1
-
                 for fm_d2 in range(outdim2):
                     # the corresponding image depth
                     _two_upper = fm_d2 * S

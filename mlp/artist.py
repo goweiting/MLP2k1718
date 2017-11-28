@@ -58,8 +58,7 @@ def plot_graph_mean_std(data, best_epochs):
         ax12.set_title('VALIDATION')
         ax12.legend(loc=0)
         ax22.legend(loc=0)
-        
-        ax22.scatter(best_epochs[i]['idx'], best_epochs[i]['mean'], c=c[c_i], marker='X')
+        ax22.scatter(best_epochs[i]['idx'], best_epochs[i]['mean'], c=c[c_i], marker='v')
         c_i+=1
         
     return fig1, fig2, ax11, ax12, ax21, ax22
@@ -100,10 +99,10 @@ def visualise_first_layer_weights(weights, fig_size=(5, 5)):
     fig = plt.figure(figsize=fig_size)
     num_feature_maps = weights.shape[0]
     grid_size = int(num_feature_maps**0.5)
-    max_abs = np.abs(model.params[0]).max()
+    max_abs = np.abs(weights).max()
     tiled = -np.ones((30 * grid_size, 
                       30 * num_feature_maps // grid_size)) * max_abs
-    for i, fm in enumerate(model.params[0]):
+    for i, fm in enumerate(weights):
         r, c = i % grid_size, i // grid_size
         tiled[1 + r * 30:(r + 1) * 30 - 1, 
               1 + c * 30:(c + 1) * 30 - 1] = fm.reshape((28, 28))
