@@ -32,7 +32,6 @@ stats_interval = 1
 input_dim, output_dim, hidden_dim = 784, 47, 400 ### FOUR HUNDRED HIDDEN UNITS
 hidden_layers = 3
   
-## INSPECTION OF HIDDEN UNITS WITH ELU:
 func = ELULayer()
 inits = {}
 experiment_units_elu = {}
