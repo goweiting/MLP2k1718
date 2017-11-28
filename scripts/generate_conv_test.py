@@ -1,5 +1,5 @@
 import numpy as np
-from mlp.layers import ConvolutionalLayer
+from mlp.layers import ConvolutionalLayer_NUMBA
 import argparse
 
 parser = argparse.ArgumentParser(description='Welcome to GAN-Shot-Learning script')
@@ -26,7 +26,7 @@ kernels = np.arange(-12, 12).reshape((2, 3, 2, 2))
 biases = np.arange(2)
 
 #produce ConvolutionalLayer fprop, bprop and grads_wrt_params
-activation_layer = ConvolutionalLayer(num_input_channels=3, num_output_channels=2, input_dim_1=4, input_dim_2=4,
+activation_layer = ConvolutionalLayer_NUMBA(num_input_channels=3, num_output_channels=2, input_dim_1=4, input_dim_2=4,
                                       kernel_dim_1=2, kernel_dim_2=2)
 activation_layer.params = [kernels, biases]
 conv_fprop = activation_layer.fprop(test_inputs)
@@ -40,7 +40,7 @@ test_output = "ConvolutionalLayer:\nFprop: {}\nBprop: {}\n" \
             conv_grads_wrt_params)
 
 cross_correlation_kernels = kernels[:, :, ::-1, ::-1]
-activation_layer = ConvolutionalLayer(num_input_channels=3, num_output_channels=2, input_dim_1=4, input_dim_2=4,
+activation_layer = ConvolutionalLayer_NUMBA(num_input_channels=3, num_output_channels=2, input_dim_1=4, input_dim_2=4,
                                       kernel_dim_1=2, kernel_dim_2=2)
 activation_layer.params = [cross_correlation_kernels, biases]
 conv_fprop = activation_layer.fprop(test_inputs)
