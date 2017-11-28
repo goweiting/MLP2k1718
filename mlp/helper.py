@@ -98,9 +98,31 @@ def wilcoxonTest(stats):
         try:
             x = np.mean(stats[a]['val_acc'], axis=0)
             y = np.mean(stats[b]['val_acc'], axis=0)
+        except ValueError:
+            # The arrays do not have equal length - usually the case for early stopping
+            # Naively slice the array:
+            _a = stats[a]['val_acc']
+            _b = stats[b]['val_acc']
+            N_a = len(_a)
+            M_a = int(min([len(_a[i]) for i in range(len(_a))]))
+            N_b = len(_b)
+            M_b = int(min([len(_b[i]) for i in range(len(_b))]))
+            assert N_a == N_b
+            M = min(M_a,M_b)
+            N = N_a
+            x, y = np.empty((N,M)),np.empty((N,M))
+            for i in range(N):
+                x[i] = _a[i][:M]*np.ones(M)
+                y[i] = _b[i][:M]*np.ones(M)
+            x.resize(N,M)
+            y.resize(N,M)
+            x = np.mean(x, axis=0) 
+            y = np.mean(y, axis=0)
+
         except IndexError:
             x = stats[a]['val_acc']['mean']
             y = stats[b]['val_acc']['mean']
+            
         t = wilcoxon(x,y)
         if t.pvalue >= 0.05:
             print(a,b,t)
