@@ -1,5 +1,6 @@
 # NOHUP
 nohup.out
+.idea/
 
 #dropbox stuff
 *.dropbox*

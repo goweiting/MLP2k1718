@@ -1,0 +1,523 @@
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_2layer_DNN.py", line 5, in <module>
+    from helper import train_model_and_plot_stats
+ModuleNotFoundError: No module named 'helper'
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_2layer_DNN.py", line 5, in <module>
+    from mlp.helper import train_model_and_plot_stats
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/MLP2k1718/mlp/helper.py", line 3, in <module>
+    from mlp.models import MultipleLayerModel
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/MLP2k1718/mlp/models.py", line 11, in <module>
+    from mlp.layers import LayerWithParameters, StochasticLayer, StochasticLayerWithParameters
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/MLP2k1718/mlp/layers.py", line 18, in <module>
+    from numba import jit
+ModuleNotFoundError: No module named 'numba'
+Traceback (most recent call last):
+  File "TESTNUMBA.py", line 5, in <module>
+    from mlp.helper import train_model_and_plot_stats
+ImportError: No module named mlp.helper
+Epoch 1: 2055.7s to complete
+    error(train)=1.45e+00, acc(train)=5.95e-01, error(valid)=1.45e+00, acc(valid)=5.99e-01, error(test)=1.47e+00, acc(test)=5.87e-01
+Epoch 2: 2046.7s to complete
+    error(train)=1.25e+00, acc(train)=6.48e-01, error(valid)=1.25e+00, acc(valid)=6.48e-01, error(test)=1.28e+00, acc(test)=6.36e-01
+Epoch 3: 2092.5s to complete
+    error(train)=1.20e+00, acc(train)=6.60e-01, error(valid)=1.20e+00, acc(valid)=6.57e-01, error(test)=1.23e+00, acc(test)=6.42e-01
+Epoch 4: 2051.4s to complete
+    error(train)=1.15e+00, acc(train)=6.73e-01, error(valid)=1.15e+00, acc(valid)=6.73e-01, error(test)=1.19e+00, acc(test)=6.58e-01
+Epoch 5: 2050.2s to complete
+    error(train)=1.10e+00, acc(train)=6.88e-01, error(valid)=1.10e+00, acc(valid)=6.86e-01, error(test)=1.14e+00, acc(test)=6.74e-01
+Epoch 6: 2068.3s to complete
+    error(train)=1.05e+00, acc(train)=7.01e-01, error(valid)=1.05e+00, acc(valid)=6.98e-01, error(test)=1.08e+00, acc(test)=6.86e-01
+Epoch 7: 2054.2s to complete
+    error(train)=9.77e-01, acc(train)=7.16e-01, error(valid)=9.82e-01, acc(valid)=7.12e-01, error(test)=1.01e+00, acc(test)=7.01e-01
+Epoch 8: 2068.5s to complete
+    error(train)=9.07e-01, acc(train)=7.37e-01, error(valid)=9.14e-01, acc(valid)=7.36e-01, error(test)=9.44e-01, acc(test)=7.24e-01
+Epoch 9: 2024.2s to complete
+    error(train)=8.41e-01, acc(train)=7.56e-01, error(valid)=8.49e-01, acc(valid)=7.50e-01, error(test)=8.80e-01, acc(test)=7.43e-01
+Epoch 10: 2149.5s to complete
+    error(train)=7.96e-01, acc(train)=7.63e-01, error(valid)=8.05e-01, acc(valid)=7.57e-01, error(test)=8.38e-01, acc(test)=7.49e-01
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+Traceback (most recent call last):
+  File "TESTNUMBA.py", line 79, in <module>
+    displayGraphs=True)
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/MLP2k1718/mlp/helper.py", line 100, in train_model_and_plot_stats
+    fig_1 = plt.figure(figsize=(8, 4))
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/pyplot.py", line 534, in figure
+    **kwargs)
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/backend_bases.py", line 170, in new_figure_manager
+    return cls.new_figure_manager_given_figure(num, fig)
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/backend_bases.py", line 176, in new_figure_manager_given_figure
+    canvas = cls.FigureCanvas(figure)
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/backends/backend_qt5agg.py", line 35, in __init__
+    super(FigureCanvasQTAggBase, self).__init__(figure=figure)
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/backends/backend_qt5.py", line 235, in __init__
+    _create_qApp()
+  File "/afs/inf.ed.ac.uk/user/s14/s1450710/miniconda3/envs/mlp/lib/python3.6/site-packages/matplotlib/backends/backend_qt5.py", line 122, in _create_qApp
+    raise RuntimeError('Invalid DISPLAY variable')
+RuntimeError: Invalid DISPLAY variable
+Epoch 1: 297.4s to complete
+    error(train)=1.98e+21, acc(train)=6.07e-02, error(valid)=1.98e+21, acc(valid)=6.08e-02, error(test)=1.99e+21, acc(test)=5.85e-02
+Epoch 2: 297.5s to complete
+    error(train)=5.44e+25, acc(train)=5.27e-02, error(valid)=5.44e+25, acc(valid)=5.44e-02, error(test)=5.47e+25, acc(test)=5.09e-02
+Epoch 3: 297.5s to complete
+    error(train)=4.75e+26, acc(train)=4.62e-02, error(valid)=4.72e+26, acc(valid)=4.89e-02, error(test)=4.79e+26, acc(test)=4.70e-02
+Epoch 4: 298.2s to complete
+    error(train)=1.34e+29, acc(train)=5.90e-02, error(valid)=1.33e+29, acc(valid)=6.26e-02, error(test)=1.34e+29, acc(test)=5.77e-02
+Epoch 5: 296.5s to complete
+    error(train)=6.04e+29, acc(train)=3.83e-02, error(valid)=5.99e+29, acc(valid)=4.08e-02, error(test)=6.05e+29, acc(test)=3.78e-02
+Epoch 6: 298.0s to complete
+    error(train)=6.86e+30, acc(train)=2.76e-02, error(valid)=6.80e+30, acc(valid)=3.04e-02, error(test)=6.91e+30, acc(test)=2.85e-02
+Epoch 7: 296.6s to complete
+    error(train)=9.33e+30, acc(train)=3.45e-02, error(valid)=9.28e+30, acc(valid)=3.63e-02, error(test)=9.37e+30, acc(test)=3.46e-02
+Epoch 8: 296.8s to complete
+    error(train)=4.02e+31, acc(train)=3.98e-02, error(valid)=4.00e+31, acc(valid)=4.21e-02, error(test)=4.04e+31, acc(test)=3.96e-02
+Epoch 9: 298.4s to complete
+    error(train)=6.54e+31, acc(train)=2.17e-02, error(valid)=6.53e+31, acc(valid)=2.25e-02, error(test)=6.57e+31, acc(test)=2.08e-02
+Epoch 10: 298.0s to complete
+    error(train)=2.10e+32, acc(train)=2.24e-02, error(valid)=2.09e+32, acc(valid)=2.33e-02, error(test)=2.10e+32, acc(test)=2.12e-02
+Epoch 11: 298.4s to complete
+    error(train)=2.49e+33, acc(train)=2.12e-02, error(valid)=2.49e+33, acc(valid)=2.22e-02, error(test)=2.50e+33, acc(test)=2.05e-02
+Epoch 12: 298.7s to complete
+    error(train)=1.44e+33, acc(train)=3.58e-02, error(valid)=1.43e+33, acc(valid)=3.48e-02, error(test)=1.44e+33, acc(test)=3.57e-02
+Epoch 13: 297.9s to complete
+    error(train)=2.36e+33, acc(train)=2.13e-02, error(valid)=2.36e+33, acc(valid)=2.21e-02, error(test)=2.36e+33, acc(test)=2.04e-02
+Epoch 14: 302.1s to complete
+    error(train)=4.54e+33, acc(train)=2.13e-02, error(valid)=4.53e+33, acc(valid)=2.21e-02, error(test)=4.54e+33, acc(test)=2.04e-02
+Epoch 15: 311.0s to complete
+    error(train)=6.69e+33, acc(train)=2.13e-02, error(valid)=6.67e+33, acc(valid)=2.22e-02, error(test)=6.71e+33, acc(test)=2.04e-02
+Epoch 16: 317.7s to complete
+    error(train)=6.17e+33, acc(train)=2.14e-02, error(valid)=6.12e+33, acc(valid)=2.22e-02, error(test)=6.19e+33, acc(test)=2.04e-02
+Epoch 17: 325.1s to complete
+    error(train)=1.95e+34, acc(train)=2.26e-02, error(valid)=1.95e+34, acc(valid)=2.37e-02, error(test)=1.96e+34, acc(test)=2.24e-02
+Epoch 18: 333.3s to complete
+    error(train)=1.74e+34, acc(train)=3.87e-02, error(valid)=1.74e+34, acc(valid)=4.05e-02, error(test)=1.75e+34, acc(test)=3.72e-02
+Epoch 19: 342.4s to complete
+    error(train)=1.64e+34, acc(train)=3.95e-02, error(valid)=1.64e+34, acc(valid)=4.00e-02, error(test)=1.64e+34, acc(test)=4.05e-02
+Epoch 20: 351.7s to complete
+    error(train)=2.60e+34, acc(train)=3.82e-02, error(valid)=2.60e+34, acc(valid)=3.68e-02, error(test)=2.61e+34, acc(test)=3.68e-02
+Epoch 21: 366.4s to complete
+    error(train)=3.44e+34, acc(train)=2.38e-02, error(valid)=3.44e+34, acc(valid)=2.53e-02, error(test)=3.47e+34, acc(test)=2.27e-02
+Epoch 22: 372.7s to complete
+    error(train)=6.34e+34, acc(train)=2.26e-02, error(valid)=6.34e+34, acc(valid)=2.36e-02, error(test)=6.40e+34, acc(test)=2.18e-02
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_1layer.py", line 88, in <module>
+    displayGraph=False)
+TypeError: train_model_and_plot_stats() got an unexpected keyword argument 'displayGraph'
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_1layer.py", line 88, in <module>
+    displayGraph=False)
+TypeError: train_model_and_plot_stats() got an unexpected keyword argument 'displayGraph'
+Epoch 1: 184.6s to complete
+    error(train)=1.27e+00, acc(train)=6.50e-01, error(valid)=1.27e+00, acc(valid)=6.50e-01, error(test)=1.29e+00, acc(test)=6.39e-01
+Epoch 2: 183.1s to complete
+    error(train)=1.20e+00, acc(train)=6.71e-01, error(valid)=1.20e+00, acc(valid)=6.68e-01, error(test)=1.23e+00, acc(test)=6.59e-01
+Epoch 3: 183.2s to complete
+    error(train)=1.16e+00, acc(train)=6.85e-01, error(valid)=1.17e+00, acc(valid)=6.81e-01, error(test)=1.19e+00, acc(test)=6.73e-01
+Epoch 4: 182.8s to complete
+    error(train)=1.02e+00, acc(train)=7.23e-01, error(valid)=1.03e+00, acc(valid)=7.21e-01, error(test)=1.05e+00, acc(test)=7.11e-01
+Epoch 5: 183.3s to complete
+    error(train)=8.63e-01, acc(train)=7.64e-01, error(valid)=8.74e-01, acc(valid)=7.61e-01, error(test)=9.00e-01, acc(test)=7.51e-01
+Epoch 6: 182.4s to complete
+    error(train)=7.50e-01, acc(train)=7.91e-01, error(valid)=7.62e-01, acc(valid)=7.88e-01, error(test)=7.94e-01, acc(test)=7.78e-01
+Epoch 7: 182.5s to complete
+    error(train)=6.82e-01, acc(train)=8.04e-01, error(valid)=6.95e-01, acc(valid)=7.98e-01, error(test)=7.32e-01, acc(test)=7.88e-01
+Epoch 8: 183.8s to complete
+    error(train)=6.31e-01, acc(train)=8.14e-01, error(valid)=6.44e-01, acc(valid)=8.11e-01, error(test)=6.86e-01, acc(test)=7.95e-01
+Epoch 9: 182.7s to complete
+    error(train)=6.04e-01, acc(train)=8.20e-01, error(valid)=6.21e-01, acc(valid)=8.12e-01, error(test)=6.60e-01, acc(test)=8.02e-01
+Epoch 10: 183.5s to complete
+    error(train)=5.88e-01, acc(train)=8.23e-01, error(valid)=6.08e-01, acc(valid)=8.17e-01, error(test)=6.49e-01, acc(test)=8.03e-01
+Epoch 11: 184.2s to complete
+    error(train)=5.66e-01, acc(train)=8.30e-01, error(valid)=5.88e-01, acc(valid)=8.22e-01, error(test)=6.26e-01, acc(test)=8.10e-01
+Epoch 12: 183.1s to complete
+    error(train)=5.57e-01, acc(train)=8.30e-01, error(valid)=5.81e-01, acc(valid)=8.22e-01, error(test)=6.24e-01, acc(test)=8.08e-01
+Epoch 13: 182.7s to complete
+    error(train)=5.49e-01, acc(train)=8.33e-01, error(valid)=5.74e-01, acc(valid)=8.22e-01, error(test)=6.16e-01, acc(test)=8.11e-01
+Epoch 14: 182.8s to complete
+    error(train)=5.40e-01, acc(train)=8.35e-01, error(valid)=5.70e-01, acc(valid)=8.22e-01, error(test)=6.12e-01, acc(test)=8.14e-01
+Epoch 15: 183.6s to complete
+    error(train)=5.36e-01, acc(train)=8.36e-01, error(valid)=5.67e-01, acc(valid)=8.24e-01, error(test)=6.09e-01, acc(test)=8.14e-01
+Epoch 16: 183.9s to complete
+    error(train)=5.32e-01, acc(train)=8.38e-01, error(valid)=5.65e-01, acc(valid)=8.26e-01, error(test)=6.09e-01, acc(test)=8.15e-01
+Epoch 17: 184.4s to complete
+    error(train)=5.29e-01, acc(train)=8.37e-01, error(valid)=5.63e-01, acc(valid)=8.25e-01, error(test)=6.10e-01, acc(test)=8.12e-01
+Epoch 18: 184.6s to complete
+    error(train)=5.12e-01, acc(train)=8.39e-01, error(valid)=5.47e-01, acc(valid)=8.27e-01, error(test)=5.92e-01, acc(test)=8.13e-01
+Epoch 19: 185.3s to complete
+    error(train)=5.13e-01, acc(train)=8.42e-01, error(valid)=5.48e-01, acc(valid)=8.29e-01, error(test)=5.93e-01, acc(test)=8.16e-01
+Epoch 20: 185.2s to complete
+    error(train)=5.10e-01, acc(train)=8.42e-01, error(valid)=5.46e-01, acc(valid)=8.28e-01, error(test)=5.92e-01, acc(test)=8.17e-01
+Epoch 21: 185.1s to complete
+    error(train)=5.11e-01, acc(train)=8.39e-01, error(valid)=5.50e-01, acc(valid)=8.26e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 22: 184.5s to complete
+    error(train)=5.08e-01, acc(train)=8.41e-01, error(valid)=5.51e-01, acc(valid)=8.26e-01, error(test)=5.92e-01, acc(test)=8.15e-01
+Epoch 23: 186.7s to complete
+    error(train)=4.94e-01, acc(train)=8.45e-01, error(valid)=5.37e-01, acc(valid)=8.29e-01, error(test)=5.81e-01, acc(test)=8.17e-01
+Epoch 24: 187.1s to complete
+    error(train)=4.91e-01, acc(train)=8.48e-01, error(valid)=5.38e-01, acc(valid)=8.31e-01, error(test)=5.79e-01, acc(test)=8.22e-01
+Epoch 25: 188.2s to complete
+    error(train)=4.99e-01, acc(train)=8.43e-01, error(valid)=5.44e-01, acc(valid)=8.27e-01, error(test)=5.86e-01, acc(test)=8.19e-01
+Epoch 26: 187.8s to complete
+    error(train)=5.08e-01, acc(train)=8.41e-01, error(valid)=5.54e-01, acc(valid)=8.24e-01, error(test)=5.97e-01, acc(test)=8.15e-01
+Epoch 27: 189.8s to complete
+    error(train)=5.03e-01, acc(train)=8.40e-01, error(valid)=5.48e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.13e-01
+Epoch 28: 189.5s to complete
+    error(train)=4.98e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.87e-01, acc(test)=8.19e-01
+Epoch 29: 186.4s to complete
+    error(train)=5.15e-01, acc(train)=8.35e-01, error(valid)=5.63e-01, acc(valid)=8.19e-01, error(test)=6.07e-01, acc(test)=8.07e-01
+Epoch 30: 186.9s to complete
+    error(train)=4.87e-01, acc(train)=8.45e-01, error(valid)=5.37e-01, acc(valid)=8.28e-01, error(test)=5.81e-01, acc(test)=8.13e-01
+Epoch 31: 187.0s to complete
+    error(train)=5.06e-01, acc(train)=8.39e-01, error(valid)=5.57e-01, acc(valid)=8.22e-01, error(test)=5.97e-01, acc(test)=8.11e-01
+Epoch 32: 186.6s to complete
+    error(train)=4.94e-01, acc(train)=8.43e-01, error(valid)=5.45e-01, acc(valid)=8.24e-01, error(test)=5.88e-01, acc(test)=8.13e-01
+Epoch 33: 186.5s to complete
+    error(train)=4.90e-01, acc(train)=8.47e-01, error(valid)=5.43e-01, acc(valid)=8.26e-01, error(test)=5.89e-01, acc(test)=8.15e-01
+Epoch 34: 186.1s to complete
+    error(train)=4.95e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.90e-01, acc(test)=8.13e-01
+Epoch 35: 185.4s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.33e-01, acc(valid)=8.29e-01, error(test)=5.79e-01, acc(test)=8.17e-01
+Epoch 36: 185.6s to complete
+    error(train)=4.76e-01, acc(train)=8.50e-01, error(valid)=5.32e-01, acc(valid)=8.32e-01, error(test)=5.78e-01, acc(test)=8.17e-01
+Epoch 37: 186.3s to complete
+    error(train)=4.82e-01, acc(train)=8.46e-01, error(valid)=5.38e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.14e-01
+Epoch 38: 186.1s to complete
+    error(train)=4.79e-01, acc(train)=8.49e-01, error(valid)=5.34e-01, acc(valid)=8.29e-01, error(test)=5.76e-01, acc(test)=8.19e-01
+Epoch 39: 185.8s to complete
+    error(train)=4.89e-01, acc(train)=8.43e-01, error(valid)=5.46e-01, acc(valid)=8.25e-01, error(test)=5.89e-01, acc(test)=8.13e-01
+Epoch 40: 186.3s to complete
+    error(train)=4.85e-01, acc(train)=8.47e-01, error(valid)=5.42e-01, acc(valid)=8.27e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 41: 185.9s to complete
+    error(train)=4.83e-01, acc(train)=8.48e-01, error(valid)=5.41e-01, acc(valid)=8.28e-01, error(test)=5.84e-01, acc(test)=8.18e-01
+Epoch 42: 185.9s to complete
+    error(train)=4.78e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.29e-01, error(test)=5.82e-01, acc(test)=8.17e-01
+Epoch 43: 186.5s to complete
+    error(train)=4.94e-01, acc(train)=8.45e-01, error(valid)=5.55e-01, acc(valid)=8.25e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 44: 186.4s to complete
+    error(train)=4.90e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.92e-01, acc(test)=8.13e-01
+Epoch 45: 185.9s to complete
+    error(train)=4.79e-01, acc(train)=8.48e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.79e-01, acc(test)=8.16e-01
+Epoch 46: 186.3s to complete
+    error(train)=4.81e-01, acc(train)=8.43e-01, error(valid)=5.41e-01, acc(valid)=8.24e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 47: 185.6s to complete
+    error(train)=4.74e-01, acc(train)=8.49e-01, error(valid)=5.37e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.17e-01
+Epoch 48: 185.9s to complete
+    error(train)=4.73e-01, acc(train)=8.47e-01, error(valid)=5.34e-01, acc(valid)=8.29e-01, error(test)=5.78e-01, acc(test)=8.17e-01
+Epoch 49: 186.0s to complete
+    error(train)=4.96e-01, acc(train)=8.40e-01, error(valid)=5.57e-01, acc(valid)=8.20e-01, error(test)=5.99e-01, acc(test)=8.09e-01
+Epoch 50: 185.3s to complete
+    error(train)=4.79e-01, acc(train)=8.45e-01, error(valid)=5.42e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.14e-01
+Epoch 51: 185.7s to complete
+    error(train)=4.74e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.14e-01
+Epoch 52: 186.0s to complete
+    error(train)=4.80e-01, acc(train)=8.48e-01, error(valid)=5.42e-01, acc(valid)=8.28e-01, error(test)=5.86e-01, acc(test)=8.14e-01
+Epoch 53: 186.1s to complete
+    error(train)=4.83e-01, acc(train)=8.47e-01, error(valid)=5.46e-01, acc(valid)=8.24e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 54: 187.5s to complete
+    error(train)=4.74e-01, acc(train)=8.49e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.82e-01, acc(test)=8.16e-01
+Epoch 55: 186.1s to complete
+    error(train)=4.74e-01, acc(train)=8.48e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.14e-01
+Epoch 56: 186.5s to complete
+    error(train)=4.70e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.28e-01, error(test)=5.80e-01, acc(test)=8.13e-01
+Epoch 57: 188.4s to complete
+    error(train)=4.81e-01, acc(train)=8.46e-01, error(valid)=5.47e-01, acc(valid)=8.24e-01, error(test)=5.88e-01, acc(test)=8.12e-01
+Epoch 58: 187.5s to complete
+    error(train)=4.82e-01, acc(train)=8.44e-01, error(valid)=5.46e-01, acc(valid)=8.23e-01, error(test)=5.91e-01, acc(test)=8.14e-01
+Epoch 59: 186.5s to complete
+    error(train)=4.77e-01, acc(train)=8.47e-01, error(valid)=5.41e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.13e-01
+Epoch 60: 185.7s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.40e-01, acc(valid)=8.24e-01, error(test)=5.85e-01, acc(test)=8.13e-01
+Epoch 61: 185.9s to complete
+    error(train)=4.87e-01, acc(train)=8.42e-01, error(valid)=5.51e-01, acc(valid)=8.20e-01, error(test)=5.96e-01, acc(test)=8.10e-01
+Epoch 62: 187.0s to complete
+    error(train)=4.66e-01, acc(train)=8.50e-01, error(valid)=5.33e-01, acc(valid)=8.28e-01, error(test)=5.76e-01, acc(test)=8.18e-01
+Epoch 63: 186.2s to complete
+    error(train)=4.69e-01, acc(train)=8.50e-01, error(valid)=5.37e-01, acc(valid)=8.28e-01, error(test)=5.80e-01, acc(test)=8.16e-01
+Epoch 64: 186.5s to complete
+    error(train)=4.73e-01, acc(train)=8.47e-01, error(valid)=5.41e-01, acc(valid)=8.26e-01, error(test)=5.83e-01, acc(test)=8.12e-01
+Epoch 65: 185.6s to complete
+    error(train)=4.86e-01, acc(train)=8.43e-01, error(valid)=5.55e-01, acc(valid)=8.24e-01, error(test)=5.94e-01, acc(test)=8.09e-01
+Epoch 66: 185.1s to complete
+    error(train)=4.75e-01, acc(train)=8.44e-01, error(valid)=5.43e-01, acc(valid)=8.23e-01, error(test)=5.88e-01, acc(test)=8.09e-01
+Epoch 67: 186.2s to complete
+    error(train)=4.72e-01, acc(train)=8.47e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.14e-01
+Epoch 68: 185.3s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.12e-01
+Epoch 69: 185.6s to complete
+    error(train)=4.84e-01, acc(train)=8.42e-01, error(valid)=5.52e-01, acc(valid)=8.21e-01, error(test)=5.96e-01, acc(test)=8.09e-01
+Epoch 70: 185.4s to complete
+    error(train)=4.74e-01, acc(train)=8.47e-01, error(valid)=5.42e-01, acc(valid)=8.25e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 71: 185.9s to complete
+    error(train)=4.80e-01, acc(train)=8.44e-01, error(valid)=5.50e-01, acc(valid)=8.23e-01, error(test)=5.91e-01, acc(test)=8.10e-01
+Epoch 72: 187.5s to complete
+    error(train)=4.79e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.90e-01, acc(test)=8.11e-01
+Epoch 73: 185.8s to complete
+    error(train)=4.76e-01, acc(train)=8.46e-01, error(valid)=5.45e-01, acc(valid)=8.26e-01, error(test)=5.87e-01, acc(test)=8.14e-01
+Epoch 74: 185.2s to complete
+    error(train)=4.72e-01, acc(train)=8.49e-01, error(valid)=5.42e-01, acc(valid)=8.29e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 75: 185.6s to complete
+    error(train)=4.86e-01, acc(train)=8.41e-01, error(valid)=5.57e-01, acc(valid)=8.20e-01, error(test)=6.01e-01, acc(test)=8.06e-01
+Epoch 76: 185.7s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.47e-01, acc(valid)=8.25e-01, error(test)=5.88e-01, acc(test)=8.11e-01
+Epoch 77: 185.2s to complete
+    error(train)=4.95e-01, acc(train)=8.39e-01, error(valid)=5.63e-01, acc(valid)=8.17e-01, error(test)=6.10e-01, acc(test)=8.04e-01
+Epoch 78: 185.3s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.48e-01, acc(valid)=8.27e-01, error(test)=5.91e-01, acc(test)=8.13e-01
+Epoch 79: 185.2s to complete
+    error(train)=4.80e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 80: 187.5s to complete
+    error(train)=4.75e-01, acc(train)=8.44e-01, error(valid)=5.46e-01, acc(valid)=8.23e-01, error(test)=5.87e-01, acc(test)=8.12e-01
+Epoch 81: 186.8s to complete
+    error(train)=4.69e-01, acc(train)=8.46e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.11e-01
+Epoch 82: 285.1s to complete
+    error(train)=4.74e-01, acc(train)=8.46e-01, error(valid)=5.44e-01, acc(valid)=8.25e-01, error(test)=5.88e-01, acc(test)=8.12e-01
+Epoch 1: 332.3s to complete
+    error(train)=1.27e+00, acc(train)=6.50e-01, error(valid)=1.27e+00, acc(valid)=6.50e-01, error(test)=1.29e+00, acc(test)=6.39e-01
+Epoch 83: 335.0s to complete
+    error(train)=4.77e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.10e-01
+Epoch 2: 328.7s to complete
+    error(train)=1.20e+00, acc(train)=6.71e-01, error(valid)=1.20e+00, acc(valid)=6.68e-01, error(test)=1.23e+00, acc(test)=6.59e-01
+Epoch 84: 331.6s to complete
+    error(train)=4.70e-01, acc(train)=8.47e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 3: 328.5s to complete
+    error(train)=1.16e+00, acc(train)=6.85e-01, error(valid)=1.17e+00, acc(valid)=6.81e-01, error(test)=1.19e+00, acc(test)=6.73e-01
+Epoch 85: 336.2s to complete
+    error(train)=4.76e-01, acc(train)=8.46e-01, error(valid)=5.50e-01, acc(valid)=8.26e-01, error(test)=5.93e-01, acc(test)=8.11e-01
+Epoch 4: 328.6s to complete
+    error(train)=1.02e+00, acc(train)=7.23e-01, error(valid)=1.03e+00, acc(valid)=7.21e-01, error(test)=1.05e+00, acc(test)=7.11e-01
+Epoch 86: 331.0s to complete
+    error(train)=4.81e-01, acc(train)=8.45e-01, error(valid)=5.52e-01, acc(valid)=8.24e-01, error(test)=5.96e-01, acc(test)=8.10e-01
+Epoch 5: 327.9s to complete
+    error(train)=8.63e-01, acc(train)=7.64e-01, error(valid)=8.74e-01, acc(valid)=7.61e-01, error(test)=9.00e-01, acc(test)=7.51e-01
+Epoch 87: 332.0s to complete
+    error(train)=4.87e-01, acc(train)=8.41e-01, error(valid)=5.58e-01, acc(valid)=8.19e-01, error(test)=6.04e-01, acc(test)=8.06e-01
+Epoch 6: 327.2s to complete
+    error(train)=7.50e-01, acc(train)=7.91e-01, error(valid)=7.62e-01, acc(valid)=7.88e-01, error(test)=7.94e-01, acc(test)=7.78e-01
+Epoch 88: 335.7s to complete
+    error(train)=4.70e-01, acc(train)=8.48e-01, error(valid)=5.41e-01, acc(valid)=8.27e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 7: 330.6s to complete
+    error(train)=6.82e-01, acc(train)=8.04e-01, error(valid)=6.95e-01, acc(valid)=7.98e-01, error(test)=7.32e-01, acc(test)=7.88e-01
+Epoch 89: 337.1s to complete
+    error(train)=4.71e-01, acc(train)=8.48e-01, error(valid)=5.45e-01, acc(valid)=8.26e-01, error(test)=5.90e-01, acc(test)=8.11e-01
+Epoch 8: 329.8s to complete
+    error(train)=6.31e-01, acc(train)=8.14e-01, error(valid)=6.44e-01, acc(valid)=8.11e-01, error(test)=6.86e-01, acc(test)=7.95e-01
+Epoch 90: 335.5s to complete
+    error(train)=4.71e-01, acc(train)=8.48e-01, error(valid)=5.47e-01, acc(valid)=8.25e-01, error(test)=5.89e-01, acc(test)=8.11e-01
+Epoch 9: 331.5s to complete
+    error(train)=6.04e-01, acc(train)=8.20e-01, error(valid)=6.21e-01, acc(valid)=8.12e-01, error(test)=6.60e-01, acc(test)=8.02e-01
+Epoch 91: 339.0s to complete
+    error(train)=4.88e-01, acc(train)=8.42e-01, error(valid)=5.60e-01, acc(valid)=8.23e-01, error(test)=6.03e-01, acc(test)=8.07e-01
+Epoch 10: 332.2s to complete
+    error(train)=5.88e-01, acc(train)=8.23e-01, error(valid)=6.08e-01, acc(valid)=8.17e-01, error(test)=6.49e-01, acc(test)=8.03e-01
+Epoch 92: 337.7s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.50e-01, acc(valid)=8.21e-01, error(test)=5.92e-01, acc(test)=8.10e-01
+Epoch 11: 331.0s to complete
+    error(train)=5.66e-01, acc(train)=8.30e-01, error(valid)=5.88e-01, acc(valid)=8.22e-01, error(test)=6.26e-01, acc(test)=8.10e-01
+Epoch 93: 339.6s to complete
+    error(train)=4.82e-01, acc(train)=8.44e-01, error(valid)=5.56e-01, acc(valid)=8.22e-01, error(test)=6.00e-01, acc(test)=8.08e-01
+Epoch 12: 334.2s to complete
+    error(train)=5.57e-01, acc(train)=8.30e-01, error(valid)=5.81e-01, acc(valid)=8.22e-01, error(test)=6.24e-01, acc(test)=8.08e-01
+Epoch 94: 344.0s to complete
+    error(train)=4.75e-01, acc(train)=8.45e-01, error(valid)=5.50e-01, acc(valid)=8.20e-01, error(test)=5.92e-01, acc(test)=8.08e-01
+Epoch 13: 338.7s to complete
+    error(train)=5.49e-01, acc(train)=8.33e-01, error(valid)=5.74e-01, acc(valid)=8.22e-01, error(test)=6.16e-01, acc(test)=8.11e-01
+Epoch 95: 342.2s to complete
+    error(train)=4.76e-01, acc(train)=8.47e-01, error(valid)=5.51e-01, acc(valid)=8.22e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 14: 337.8s to complete
+    error(train)=5.40e-01, acc(train)=8.35e-01, error(valid)=5.70e-01, acc(valid)=8.22e-01, error(test)=6.12e-01, acc(test)=8.14e-01
+Epoch 96: 341.1s to complete
+    error(train)=4.84e-01, acc(train)=8.43e-01, error(valid)=5.56e-01, acc(valid)=8.23e-01, error(test)=6.00e-01, acc(test)=8.09e-01
+Epoch 15: 335.1s to complete
+    error(train)=5.36e-01, acc(train)=8.36e-01, error(valid)=5.67e-01, acc(valid)=8.24e-01, error(test)=6.09e-01, acc(test)=8.14e-01
+Epoch 97: 342.0s to complete
+    error(train)=4.81e-01, acc(train)=8.43e-01, error(valid)=5.55e-01, acc(valid)=8.20e-01, error(test)=5.98e-01, acc(test)=8.09e-01
+Epoch 16: 335.2s to complete
+    error(train)=5.32e-01, acc(train)=8.38e-01, error(valid)=5.65e-01, acc(valid)=8.26e-01, error(test)=6.09e-01, acc(test)=8.15e-01
+Epoch 98: 338.7s to complete
+    error(train)=4.72e-01, acc(train)=8.48e-01, error(valid)=5.48e-01, acc(valid)=8.25e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 17: 337.3s to complete
+    error(train)=5.29e-01, acc(train)=8.37e-01, error(valid)=5.63e-01, acc(valid)=8.25e-01, error(test)=6.10e-01, acc(test)=8.12e-01
+Epoch 99: 340.6s to complete
+    error(train)=4.91e-01, acc(train)=8.38e-01, error(valid)=5.66e-01, acc(valid)=8.19e-01, error(test)=6.08e-01, acc(test)=8.04e-01
+Epoch 18: 338.7s to complete
+    error(train)=5.12e-01, acc(train)=8.39e-01, error(valid)=5.47e-01, acc(valid)=8.27e-01, error(test)=5.92e-01, acc(test)=8.13e-01
+Epoch 100: 341.5s to complete
+    error(train)=4.61e-01, acc(train)=8.50e-01, error(valid)=5.37e-01, acc(valid)=8.26e-01, error(test)=5.78e-01, acc(test)=8.15e-01
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+Epoch 19: 327.4s to complete
+    error(train)=5.13e-01, acc(train)=8.42e-01, error(valid)=5.48e-01, acc(valid)=8.29e-01, error(test)=5.93e-01, acc(test)=8.16e-01
+Epoch 20: 184.9s to complete
+    error(train)=5.10e-01, acc(train)=8.42e-01, error(valid)=5.46e-01, acc(valid)=8.28e-01, error(test)=5.92e-01, acc(test)=8.17e-01
+Epoch 21: 185.3s to complete
+    error(train)=5.11e-01, acc(train)=8.39e-01, error(valid)=5.50e-01, acc(valid)=8.26e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 22: 185.9s to complete
+    error(train)=5.08e-01, acc(train)=8.41e-01, error(valid)=5.51e-01, acc(valid)=8.26e-01, error(test)=5.92e-01, acc(test)=8.15e-01
+Epoch 23: 189.1s to complete
+    error(train)=4.94e-01, acc(train)=8.45e-01, error(valid)=5.37e-01, acc(valid)=8.29e-01, error(test)=5.81e-01, acc(test)=8.17e-01
+Epoch 24: 188.4s to complete
+    error(train)=4.91e-01, acc(train)=8.48e-01, error(valid)=5.38e-01, acc(valid)=8.31e-01, error(test)=5.79e-01, acc(test)=8.22e-01
+Epoch 25: 185.8s to complete
+    error(train)=4.99e-01, acc(train)=8.43e-01, error(valid)=5.44e-01, acc(valid)=8.27e-01, error(test)=5.86e-01, acc(test)=8.19e-01
+Epoch 26: 186.0s to complete
+    error(train)=5.08e-01, acc(train)=8.41e-01, error(valid)=5.54e-01, acc(valid)=8.24e-01, error(test)=5.97e-01, acc(test)=8.15e-01
+Epoch 27: 187.5s to complete
+    error(train)=5.03e-01, acc(train)=8.40e-01, error(valid)=5.48e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.13e-01
+Epoch 28: 185.2s to complete
+    error(train)=4.98e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.87e-01, acc(test)=8.19e-01
+Epoch 29: 186.1s to complete
+    error(train)=5.15e-01, acc(train)=8.35e-01, error(valid)=5.63e-01, acc(valid)=8.19e-01, error(test)=6.07e-01, acc(test)=8.07e-01
+Epoch 30: 185.8s to complete
+    error(train)=4.87e-01, acc(train)=8.45e-01, error(valid)=5.37e-01, acc(valid)=8.28e-01, error(test)=5.81e-01, acc(test)=8.13e-01
+Epoch 31: 186.2s to complete
+    error(train)=5.06e-01, acc(train)=8.39e-01, error(valid)=5.57e-01, acc(valid)=8.22e-01, error(test)=5.97e-01, acc(test)=8.11e-01
+Epoch 32: 185.9s to complete
+    error(train)=4.94e-01, acc(train)=8.43e-01, error(valid)=5.45e-01, acc(valid)=8.24e-01, error(test)=5.88e-01, acc(test)=8.13e-01
+Epoch 33: 186.2s to complete
+    error(train)=4.90e-01, acc(train)=8.47e-01, error(valid)=5.43e-01, acc(valid)=8.26e-01, error(test)=5.89e-01, acc(test)=8.15e-01
+Epoch 34: 185.8s to complete
+    error(train)=4.95e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.90e-01, acc(test)=8.13e-01
+Epoch 35: 185.3s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.33e-01, acc(valid)=8.29e-01, error(test)=5.79e-01, acc(test)=8.17e-01
+Epoch 36: 185.2s to complete
+    error(train)=4.76e-01, acc(train)=8.50e-01, error(valid)=5.32e-01, acc(valid)=8.32e-01, error(test)=5.78e-01, acc(test)=8.17e-01
+Epoch 37: 186.0s to complete
+    error(train)=4.82e-01, acc(train)=8.46e-01, error(valid)=5.38e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.14e-01
+Epoch 38: 187.1s to complete
+    error(train)=4.79e-01, acc(train)=8.49e-01, error(valid)=5.34e-01, acc(valid)=8.29e-01, error(test)=5.76e-01, acc(test)=8.19e-01
+Epoch 39: 186.2s to complete
+    error(train)=4.89e-01, acc(train)=8.43e-01, error(valid)=5.46e-01, acc(valid)=8.25e-01, error(test)=5.89e-01, acc(test)=8.13e-01
+Epoch 40: 186.3s to complete
+    error(train)=4.85e-01, acc(train)=8.47e-01, error(valid)=5.42e-01, acc(valid)=8.27e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 41: 188.4s to complete
+    error(train)=4.83e-01, acc(train)=8.48e-01, error(valid)=5.41e-01, acc(valid)=8.28e-01, error(test)=5.84e-01, acc(test)=8.18e-01
+Epoch 42: 185.9s to complete
+    error(train)=4.78e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.29e-01, error(test)=5.82e-01, acc(test)=8.17e-01
+Epoch 43: 185.0s to complete
+    error(train)=4.94e-01, acc(train)=8.45e-01, error(valid)=5.55e-01, acc(valid)=8.25e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 44: 185.4s to complete
+    error(train)=4.90e-01, acc(train)=8.43e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.92e-01, acc(test)=8.13e-01
+Epoch 45: 185.2s to complete
+    error(train)=4.79e-01, acc(train)=8.48e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.79e-01, acc(test)=8.16e-01
+Epoch 46: 185.3s to complete
+    error(train)=4.81e-01, acc(train)=8.43e-01, error(valid)=5.41e-01, acc(valid)=8.24e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 47: 185.4s to complete
+    error(train)=4.74e-01, acc(train)=8.49e-01, error(valid)=5.37e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.17e-01
+Epoch 48: 187.5s to complete
+    error(train)=4.73e-01, acc(train)=8.47e-01, error(valid)=5.34e-01, acc(valid)=8.29e-01, error(test)=5.78e-01, acc(test)=8.17e-01
+Epoch 49: 186.6s to complete
+    error(train)=4.96e-01, acc(train)=8.40e-01, error(valid)=5.57e-01, acc(valid)=8.20e-01, error(test)=5.99e-01, acc(test)=8.09e-01
+Epoch 50: 185.8s to complete
+    error(train)=4.79e-01, acc(train)=8.45e-01, error(valid)=5.42e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.14e-01
+Epoch 51: 186.0s to complete
+    error(train)=4.74e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.14e-01
+Epoch 52: 185.7s to complete
+    error(train)=4.80e-01, acc(train)=8.48e-01, error(valid)=5.42e-01, acc(valid)=8.28e-01, error(test)=5.86e-01, acc(test)=8.14e-01
+Epoch 53: 185.7s to complete
+    error(train)=4.83e-01, acc(train)=8.47e-01, error(valid)=5.46e-01, acc(valid)=8.24e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 54: 188.1s to complete
+    error(train)=4.74e-01, acc(train)=8.49e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.82e-01, acc(test)=8.16e-01
+Epoch 55: 187.6s to complete
+    error(train)=4.74e-01, acc(train)=8.48e-01, error(valid)=5.40e-01, acc(valid)=8.29e-01, error(test)=5.80e-01, acc(test)=8.14e-01
+Epoch 56: 185.8s to complete
+    error(train)=4.70e-01, acc(train)=8.48e-01, error(valid)=5.36e-01, acc(valid)=8.28e-01, error(test)=5.80e-01, acc(test)=8.13e-01
+Epoch 57: 185.6s to complete
+    error(train)=4.81e-01, acc(train)=8.46e-01, error(valid)=5.47e-01, acc(valid)=8.24e-01, error(test)=5.88e-01, acc(test)=8.12e-01
+Epoch 58: 187.7s to complete
+    error(train)=4.82e-01, acc(train)=8.44e-01, error(valid)=5.46e-01, acc(valid)=8.23e-01, error(test)=5.91e-01, acc(test)=8.14e-01
+Epoch 59: 188.3s to complete
+    error(train)=4.77e-01, acc(train)=8.47e-01, error(valid)=5.41e-01, acc(valid)=8.27e-01, error(test)=5.83e-01, acc(test)=8.13e-01
+Epoch 60: 188.4s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.40e-01, acc(valid)=8.24e-01, error(test)=5.85e-01, acc(test)=8.13e-01
+Epoch 61: 187.1s to complete
+    error(train)=4.87e-01, acc(train)=8.42e-01, error(valid)=5.51e-01, acc(valid)=8.20e-01, error(test)=5.96e-01, acc(test)=8.10e-01
+Epoch 62: 185.8s to complete
+    error(train)=4.66e-01, acc(train)=8.50e-01, error(valid)=5.33e-01, acc(valid)=8.28e-01, error(test)=5.76e-01, acc(test)=8.18e-01
+Epoch 63: 184.8s to complete
+    error(train)=4.69e-01, acc(train)=8.50e-01, error(valid)=5.37e-01, acc(valid)=8.28e-01, error(test)=5.80e-01, acc(test)=8.16e-01
+Epoch 64: 185.8s to complete
+    error(train)=4.73e-01, acc(train)=8.47e-01, error(valid)=5.41e-01, acc(valid)=8.26e-01, error(test)=5.83e-01, acc(test)=8.12e-01
+Epoch 65: 185.1s to complete
+    error(train)=4.86e-01, acc(train)=8.43e-01, error(valid)=5.55e-01, acc(valid)=8.24e-01, error(test)=5.94e-01, acc(test)=8.09e-01
+Epoch 66: 185.5s to complete
+    error(train)=4.75e-01, acc(train)=8.44e-01, error(valid)=5.43e-01, acc(valid)=8.23e-01, error(test)=5.88e-01, acc(test)=8.09e-01
+Epoch 67: 187.7s to complete
+    error(train)=4.72e-01, acc(train)=8.47e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.14e-01
+Epoch 68: 187.2s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.12e-01
+Epoch 69: 187.7s to complete
+    error(train)=4.84e-01, acc(train)=8.42e-01, error(valid)=5.52e-01, acc(valid)=8.21e-01, error(test)=5.96e-01, acc(test)=8.09e-01
+Epoch 70: 186.3s to complete
+    error(train)=4.74e-01, acc(train)=8.47e-01, error(valid)=5.42e-01, acc(valid)=8.25e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 71: 185.8s to complete
+    error(train)=4.80e-01, acc(train)=8.44e-01, error(valid)=5.50e-01, acc(valid)=8.23e-01, error(test)=5.91e-01, acc(test)=8.10e-01
+Epoch 72: 185.4s to complete
+    error(train)=4.79e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.90e-01, acc(test)=8.11e-01
+Epoch 73: 185.5s to complete
+    error(train)=4.76e-01, acc(train)=8.46e-01, error(valid)=5.45e-01, acc(valid)=8.26e-01, error(test)=5.87e-01, acc(test)=8.14e-01
+Epoch 74: 185.1s to complete
+    error(train)=4.72e-01, acc(train)=8.49e-01, error(valid)=5.42e-01, acc(valid)=8.29e-01, error(test)=5.84e-01, acc(test)=8.16e-01
+Epoch 75: 186.3s to complete
+    error(train)=4.86e-01, acc(train)=8.41e-01, error(valid)=5.57e-01, acc(valid)=8.20e-01, error(test)=6.01e-01, acc(test)=8.06e-01
+Epoch 76: 188.2s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.47e-01, acc(valid)=8.25e-01, error(test)=5.88e-01, acc(test)=8.11e-01
+Epoch 77: 187.7s to complete
+    error(train)=4.95e-01, acc(train)=8.39e-01, error(valid)=5.63e-01, acc(valid)=8.17e-01, error(test)=6.10e-01, acc(test)=8.04e-01
+Epoch 78: 187.6s to complete
+    error(train)=4.80e-01, acc(train)=8.47e-01, error(valid)=5.48e-01, acc(valid)=8.27e-01, error(test)=5.91e-01, acc(test)=8.13e-01
+Epoch 79: 187.2s to complete
+    error(train)=4.80e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.25e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 80: 189.4s to complete
+    error(train)=4.75e-01, acc(train)=8.44e-01, error(valid)=5.46e-01, acc(valid)=8.23e-01, error(test)=5.87e-01, acc(test)=8.12e-01
+Epoch 81: 185.0s to complete
+    error(train)=4.69e-01, acc(train)=8.46e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.11e-01
+Epoch 82: 186.2s to complete
+    error(train)=4.74e-01, acc(train)=8.46e-01, error(valid)=5.44e-01, acc(valid)=8.25e-01, error(test)=5.88e-01, acc(test)=8.12e-01
+Epoch 83: 186.7s to complete
+    error(train)=4.77e-01, acc(train)=8.46e-01, error(valid)=5.49e-01, acc(valid)=8.24e-01, error(test)=5.91e-01, acc(test)=8.10e-01
+Epoch 84: 185.7s to complete
+    error(train)=4.70e-01, acc(train)=8.47e-01, error(valid)=5.40e-01, acc(valid)=8.26e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 85: 186.5s to complete
+    error(train)=4.76e-01, acc(train)=8.46e-01, error(valid)=5.50e-01, acc(valid)=8.26e-01, error(test)=5.93e-01, acc(test)=8.11e-01
+Epoch 86: 185.7s to complete
+    error(train)=4.81e-01, acc(train)=8.45e-01, error(valid)=5.52e-01, acc(valid)=8.24e-01, error(test)=5.96e-01, acc(test)=8.10e-01
+Epoch 87: 186.7s to complete
+    error(train)=4.87e-01, acc(train)=8.41e-01, error(valid)=5.58e-01, acc(valid)=8.19e-01, error(test)=6.04e-01, acc(test)=8.06e-01
+Epoch 88: 186.3s to complete
+    error(train)=4.70e-01, acc(train)=8.48e-01, error(valid)=5.41e-01, acc(valid)=8.27e-01, error(test)=5.84e-01, acc(test)=8.12e-01
+Epoch 89: 185.6s to complete
+    error(train)=4.71e-01, acc(train)=8.48e-01, error(valid)=5.45e-01, acc(valid)=8.26e-01, error(test)=5.90e-01, acc(test)=8.11e-01
+Epoch 90: 188.3s to complete
+    error(train)=4.71e-01, acc(train)=8.48e-01, error(valid)=5.47e-01, acc(valid)=8.25e-01, error(test)=5.89e-01, acc(test)=8.11e-01
+Epoch 91: 191.0s to complete
+    error(train)=4.88e-01, acc(train)=8.42e-01, error(valid)=5.60e-01, acc(valid)=8.23e-01, error(test)=6.03e-01, acc(test)=8.07e-01
+Epoch 92: 186.6s to complete
+    error(train)=4.75e-01, acc(train)=8.46e-01, error(valid)=5.50e-01, acc(valid)=8.21e-01, error(test)=5.92e-01, acc(test)=8.10e-01
+Epoch 93: 188.9s to complete
+    error(train)=4.82e-01, acc(train)=8.44e-01, error(valid)=5.56e-01, acc(valid)=8.22e-01, error(test)=6.00e-01, acc(test)=8.08e-01
+Epoch 94: 188.2s to complete
+    error(train)=4.75e-01, acc(train)=8.45e-01, error(valid)=5.50e-01, acc(valid)=8.20e-01, error(test)=5.92e-01, acc(test)=8.08e-01
+Epoch 95: 187.7s to complete
+    error(train)=4.76e-01, acc(train)=8.47e-01, error(valid)=5.51e-01, acc(valid)=8.22e-01, error(test)=5.95e-01, acc(test)=8.12e-01
+Epoch 96: 188.2s to complete
+    error(train)=4.84e-01, acc(train)=8.43e-01, error(valid)=5.56e-01, acc(valid)=8.23e-01, error(test)=6.00e-01, acc(test)=8.09e-01
+Epoch 97: 186.3s to complete
+    error(train)=4.81e-01, acc(train)=8.43e-01, error(valid)=5.55e-01, acc(valid)=8.20e-01, error(test)=5.98e-01, acc(test)=8.09e-01
+Epoch 98: 186.0s to complete
+    error(train)=4.72e-01, acc(train)=8.48e-01, error(valid)=5.48e-01, acc(valid)=8.25e-01, error(test)=5.92e-01, acc(test)=8.14e-01
+Epoch 99: 188.1s to complete
+    error(train)=4.91e-01, acc(train)=8.38e-01, error(valid)=5.66e-01, acc(valid)=8.19e-01, error(test)=6.08e-01, acc(test)=8.04e-01
+Epoch 100: 186.5s to complete
+    error(train)=4.61e-01, acc(train)=8.50e-01, error(valid)=5.37e-01, acc(valid)=8.26e-01, error(test)=5.78e-01, acc(test)=8.15e-01
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']

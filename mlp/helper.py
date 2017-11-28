@@ -118,7 +118,6 @@ def wilcoxonTest(stats):
             y.resize(N,M)
             x = np.mean(x, axis=0) 
             y = np.mean(y, axis=0)
-
         except IndexError:
             x = stats[a]['val_acc']['mean']
             y = stats[b]['val_acc']['mean']
