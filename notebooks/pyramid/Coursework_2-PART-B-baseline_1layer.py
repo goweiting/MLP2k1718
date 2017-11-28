@@ -1,8 +1,6 @@
 from __future__ import print_function
 
 from mlp.helper import train_model_and_plot_stats
-
-
 # The below code will set up the data providers, random number
 # generator and logger objects needed for training runs. As
 # loading the data from file take a little while you generally
@@ -75,18 +73,20 @@ error = CrossEntropyLogSoftmaxError()
 learning_rule = AdamLearningRule()
 
 # Remember to use notebook=False when you write a script to be run in a terminal
-trial1 = train_model_and_plot_stats(
-    model,
-    error,
-    learning_rule,
-    train_data,
-    valid_data,
-    test_data,
-    num_epochs,
-    stats_interval,
-    notebook=False,
-    displayGraphs=False)
+trial1 = train_model_and_plot_stats(model,
+                                    error,
+                                    learning_rule,
+                                    train_data,
+                                    valid_data,
+                                    test_data,
+                                    num_epochs,
+                                    stats_interval,
+                                    notebook=False,
+                                    displayGraphs=False,
+                                    earlyStop=True,
+                                    steps=3,
+                                    patience=5)
 
 import pickle as pkl
 
-pkl.dump(trial1, open('convNet_1layer_wDropout.pkl', 'wb'), protocol=-1)
+pkl.dump(trial1, open('convNet_1layer_wDropout2.pkl', 'wb'), protocol=-1)

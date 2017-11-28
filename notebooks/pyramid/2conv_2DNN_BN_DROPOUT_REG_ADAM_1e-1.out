@@ -1,0 +1,110 @@
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_2layer_DNN.py", line 17, in <module>
+    train_data = EMNISTDataProvider('train', batch_size=batch_size, rng=rng)
+NameError: name 'EMNISTDataProvider' is not defined
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+Traceback (most recent call last):
+  File "Coursework_2-PART-B-baseline_2layer_DNN.py", line 78, in <module>
+    AffineLayerWithoutBias(4*4*10, 400, weights_init, biases_init,weights_penalty=L2Penalty(1e-6)),
+TypeError: __init__() got multiple values for argument 'weights_penalty'
+Epoch 1: 274.8s to complete
+    error(train)=7.54e-01, acc(train)=7.51e-01, error(valid)=7.49e-01, acc(valid)=7.52e-01, error(test)=7.77e-01, acc(test)=7.43e-01
+Epoch 1: 522.7s to complete
+    error(train)=7.58e-01, acc(train)=7.45e-01, error(valid)=7.53e-01, acc(valid)=7.44e-01, error(test)=7.94e-01, acc(test)=7.35e-01
+Epoch 2: 350.0s to complete
+    error(train)=6.43e-01, acc(train)=7.75e-01, error(valid)=6.40e-01, acc(valid)=7.81e-01, error(test)=6.69e-01, acc(test)=7.75e-01
+Epoch 3: 274.3s to complete
+    error(train)=6.19e-01, acc(train)=7.91e-01, error(valid)=6.12e-01, acc(valid)=7.94e-01, error(test)=6.46e-01, acc(test)=7.81e-01
+Epoch 4: 273.8s to complete
+    error(train)=5.97e-01, acc(train)=8.00e-01, error(valid)=6.04e-01, acc(valid)=8.00e-01, error(test)=6.26e-01, acc(test)=7.89e-01
+Epoch 5: 274.1s to complete
+    error(train)=5.97e-01, acc(train)=7.95e-01, error(valid)=6.00e-01, acc(valid)=7.94e-01, error(test)=6.23e-01, acc(test)=7.88e-01
+Epoch 6: 272.6s to complete
+    error(train)=6.19e-01, acc(train)=8.01e-01, error(valid)=6.10e-01, acc(valid)=8.08e-01, error(test)=6.48e-01, acc(test)=7.92e-01
+Epoch 7: 280.1s to complete
+    error(train)=5.82e-01, acc(train)=8.06e-01, error(valid)=5.89e-01, acc(valid)=8.04e-01, error(test)=6.28e-01, acc(test)=7.95e-01
+Epoch 8: 278.2s to complete
+    error(train)=5.86e-01, acc(train)=8.05e-01, error(valid)=5.79e-01, acc(valid)=8.10e-01, error(test)=6.11e-01, acc(test)=7.97e-01
+Epoch 9: 274.3s to complete
+    error(train)=5.89e-01, acc(train)=7.95e-01, error(valid)=5.93e-01, acc(valid)=7.97e-01, error(test)=6.25e-01, acc(test)=7.86e-01
+Epoch 10: 275.1s to complete
+    error(train)=5.44e-01, acc(train)=8.15e-01, error(valid)=5.52e-01, acc(valid)=8.16e-01, error(test)=5.70e-01, acc(test)=8.09e-01
+Epoch 11: 277.3s to complete
+    error(train)=5.70e-01, acc(train)=8.02e-01, error(valid)=5.75e-01, acc(valid)=8.02e-01, error(test)=5.98e-01, acc(test)=7.94e-01
+Epoch 12: 276.3s to complete
+    error(train)=5.39e-01, acc(train)=8.14e-01, error(valid)=5.45e-01, acc(valid)=8.15e-01, error(test)=5.71e-01, acc(test)=8.07e-01
+Epoch 13: 279.5s to complete
+    error(train)=5.28e-01, acc(train)=8.25e-01, error(valid)=5.31e-01, acc(valid)=8.24e-01, error(test)=5.57e-01, acc(test)=8.17e-01
+Epoch 14: 290.0s to complete
+    error(train)=5.70e-01, acc(train)=8.08e-01, error(valid)=5.78e-01, acc(valid)=8.03e-01, error(test)=6.07e-01, acc(test)=7.98e-01
+Epoch 15: 292.7s to complete
+    error(train)=5.43e-01, acc(train)=8.17e-01, error(valid)=5.55e-01, acc(valid)=8.16e-01, error(test)=5.78e-01, acc(test)=8.08e-01
+Epoch 16: 293.0s to complete
+    error(train)=5.86e-01, acc(train)=8.04e-01, error(valid)=5.98e-01, acc(valid)=8.01e-01, error(test)=6.25e-01, acc(test)=7.91e-01
+UP1: error(valid) at 16 = 5.98e-01 > at 11 = 5.75e-01
+Epoch 17: 293.8s to complete
+    error(train)=5.43e-01, acc(train)=8.10e-01, error(valid)=5.40e-01, acc(valid)=8.13e-01, error(test)=5.84e-01, acc(test)=8.01e-01
+Epoch 18: 296.1s to complete
+    error(train)=5.22e-01, acc(train)=8.25e-01, error(valid)=5.28e-01, acc(valid)=8.26e-01, error(test)=5.63e-01, acc(test)=8.16e-01
+Epoch 19: 300.1s to complete
+    error(train)=5.48e-01, acc(train)=8.10e-01, error(valid)=5.48e-01, acc(valid)=8.10e-01, error(test)=5.80e-01, acc(test)=8.01e-01
+Epoch 20: 302.0s to complete
+    error(train)=5.50e-01, acc(train)=8.13e-01, error(valid)=5.56e-01, acc(valid)=8.10e-01, error(test)=5.95e-01, acc(test)=8.01e-01
+UP1: error(valid) at 20 = 5.56e-01 > at 15 = 5.55e-01
+UP2: error(valid) at 15 = 5.55e-01 > at 10 = 5.52e-01
+Epoch 21: 305.2s to complete
+    error(train)=5.37e-01, acc(train)=8.17e-01, error(valid)=5.44e-01, acc(valid)=8.16e-01, error(test)=5.76e-01, acc(test)=8.07e-01
+Epoch 22: 311.9s to complete
+    error(train)=5.17e-01, acc(train)=8.24e-01, error(valid)=5.25e-01, acc(valid)=8.23e-01, error(test)=5.68e-01, acc(test)=8.10e-01
+Epoch 23: 315.0s to complete
+    error(train)=5.22e-01, acc(train)=8.24e-01, error(valid)=5.32e-01, acc(valid)=8.21e-01, error(test)=5.64e-01, acc(test)=8.12e-01
+UP1: error(valid) at 23 = 5.32e-01 > at 18 = 5.28e-01
+Epoch 24: 316.5s to complete
+    error(train)=5.46e-01, acc(train)=8.13e-01, error(valid)=5.44e-01, acc(valid)=8.13e-01, error(test)=5.86e-01, acc(test)=8.05e-01
+Epoch 25: 314.3s to complete
+    error(train)=5.59e-01, acc(train)=8.10e-01, error(valid)=5.61e-01, acc(valid)=8.11e-01, error(test)=5.84e-01, acc(test)=8.06e-01
+UP1: error(valid) at 25 = 5.61e-01 > at 20 = 5.56e-01
+UP2: error(valid) at 20 = 5.56e-01 > at 15 = 5.55e-01
+UP3: error(valid) at 15 = 5.55e-01 > at 10 = 5.52e-01
+EARLY STOPPING
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+MultiLayerModel(
+    DropoutLayer(incl_prob=0.8)
+    ReshapeLayer(output_shape=(1, 28, 28))
+    ConvolutionalLayer(
+    num_input_channels=1, num_output_channels=5,
+    input_dim_1=28, input_dim_2=28,
+    kernel_dim_1=5, kernel_dim_2=5
+)
+    MaxPoolLayer(
+    num_input_channels=5,
+    input_dim_1=24, input_dim_2=24,
+    extent=2, stride=2
+)
+    ReluLayer
+    ConvolutionalLayer(
+    num_input_channels=5, num_output_channels=10,
+    input_dim_1=12, input_dim_2=12,
+    kernel_dim_1=5, kernel_dim_2=5
+)
+    MaxPoolLayer(
+    num_input_channels=10,
+    input_dim_1=8, input_dim_2=8,
+    extent=2, stride=2
+)
+    ReluLayer
+    ReshapeLayer(output_shape=(160,))
+    DropoutLayer(incl_prob=0.8)
+    AffineLayerWithoutBias(input_dim=160, output_dim=400)
+    BatchNormalizationLayer(input_dim=400)
+    ReluLayer
+    DropoutLayer(incl_prob=0.8)
+    AffineLayerWithoutBias(input_dim=400, output_dim=400)
+    BatchNormalizationLayer(input_dim=400)
+    ReluLayer
+    AffineLayer(input_dim=400, output_dim=47)
+)
