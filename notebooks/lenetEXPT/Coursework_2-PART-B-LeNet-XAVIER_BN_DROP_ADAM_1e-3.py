@@ -99,4 +99,4 @@ output = train_model_and_plot_stats(model,
                                     patience=5)
 
 import pickle as pkl
-pkl.dump(expt, open('leNet-XAVIER_BN_DROPOUT_ADAM_1e-3.pkl', 'wb'), protocol=-1)
+pkl.dump(output, open('leNet-XAVIER_BN_DROPOUT_ADAM_1e-3.pkl', 'wb'), protocol=-1)
