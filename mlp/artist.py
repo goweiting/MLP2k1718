@@ -4,12 +4,14 @@ import numpy as np
 def plot_graph_mean_std(data, best_epochs):
     c = ['b','g','c','r','k','y','m']
     c_i=0
-    fig1 = plt.figure(figsize=(10, 5))  # ERRROR
-    ax11 = fig1.add_subplot(121)
-    ax12 = fig1.add_subplot(122)
-    fig2 = plt.figure(figsize=(10, 5))  # ACCURACY
-    ax21 = fig2.add_subplot(121)
-    ax22 = fig2.add_subplot(122)
+    fig1 = plt.figure(figsize=(5, 5))  # ERRROR
+    fig2 = plt.figure(figsize=(5, 5))  # ERRROR
+    ax11 = fig1.add_subplot(111)
+    ax12 = fig2.add_subplot(111)
+    fig3 = plt.figure(figsize=(5, 5))  # ACCURACY
+    fig4 = plt.figure(figsize=(5, 5))  # ACCURACY
+    ax21 = fig3.add_subplot(111)
+    ax22 = fig4.add_subplot(111)
     for i in data.keys():
         # plot each data dataset's validation and train
         _data = data[i]
@@ -61,7 +63,7 @@ def plot_graph_mean_std(data, best_epochs):
         ax22.scatter(best_epochs[i]['idx'], best_epochs[i]['mean'], c=c[c_i], marker='v')
         c_i+=1
         
-    return fig1, fig2, ax11, ax12, ax21, ax22
+    return fig1, fig2, fig3, fig4
 
 def plot_combined_layers(data):
     fig = plt.figure(figsize=(10, 10))
