@@ -1,0 +1,94 @@
+Epoch 1: 713.1s to complete
+    error(train)=4.24e-01, acc(train)=8.51e-01, error(valid)=4.34e-01, acc(valid)=8.47e-01, error(test)=4.60e-01, acc(test)=8.39e-01
+Epoch 2: 710.2s to complete
+    error(train)=3.66e-01, acc(train)=8.66e-01, error(valid)=3.89e-01, acc(valid)=8.59e-01, error(test)=4.12e-01, acc(test)=8.55e-01
+Epoch 3: 714.1s to complete
+    error(train)=3.47e-01, acc(train)=8.73e-01, error(valid)=3.78e-01, acc(valid)=8.64e-01, error(test)=4.14e-01, acc(test)=8.53e-01
+Epoch 4: 716.7s to complete
+    error(train)=3.12e-01, acc(train)=8.84e-01, error(valid)=3.43e-01, acc(valid)=8.77e-01, error(test)=3.79e-01, acc(test)=8.67e-01
+Epoch 5: 716.7s to complete
+    error(train)=2.90e-01, acc(train)=8.91e-01, error(valid)=3.32e-01, acc(valid)=8.78e-01, error(test)=3.67e-01, acc(test)=8.70e-01
+Epoch 6: 715.2s to complete
+    error(train)=2.89e-01, acc(train)=8.91e-01, error(valid)=3.44e-01, acc(valid)=8.79e-01, error(test)=3.74e-01, acc(test)=8.73e-01
+Epoch 7: 722.9s to complete
+    error(train)=2.88e-01, acc(train)=8.88e-01, error(valid)=3.46e-01, acc(valid)=8.72e-01, error(test)=3.79e-01, acc(test)=8.64e-01
+Epoch 8: 719.6s to complete
+    error(train)=2.66e-01, acc(train)=8.98e-01, error(valid)=3.28e-01, acc(valid)=8.85e-01, error(test)=3.64e-01, acc(test)=8.73e-01
+Epoch 9: 716.4s to complete
+    error(train)=2.55e-01, acc(train)=9.01e-01, error(valid)=3.26e-01, acc(valid)=8.81e-01, error(test)=3.63e-01, acc(test)=8.75e-01
+Epoch 10: 718.3s to complete
+    error(train)=2.55e-01, acc(train)=8.99e-01, error(valid)=3.33e-01, acc(valid)=8.80e-01, error(test)=3.65e-01, acc(test)=8.74e-01
+Epoch 11: 718.5s to complete
+    error(train)=2.39e-01, acc(train)=9.05e-01, error(valid)=3.20e-01, acc(valid)=8.85e-01, error(test)=3.54e-01, acc(test)=8.74e-01
+Epoch 12: 718.1s to complete
+    error(train)=2.32e-01, acc(train)=9.08e-01, error(valid)=3.23e-01, acc(valid)=8.85e-01, error(test)=3.52e-01, acc(test)=8.79e-01
+Epoch 13: 717.7s to complete
+    error(train)=2.32e-01, acc(train)=9.07e-01, error(valid)=3.28e-01, acc(valid)=8.82e-01, error(test)=3.50e-01, acc(test)=8.78e-01
+Epoch 14: 781.2s to complete
+    error(train)=2.19e-01, acc(train)=9.14e-01, error(valid)=3.19e-01, acc(valid)=8.88e-01, error(test)=3.49e-01, acc(test)=8.80e-01
+Epoch 15: 802.1s to complete
+    error(train)=2.09e-01, acc(train)=9.17e-01, error(valid)=3.15e-01, acc(valid)=8.88e-01, error(test)=3.42e-01, acc(test)=8.81e-01
+Epoch 16: 798.3s to complete
+    error(train)=2.15e-01, acc(train)=9.13e-01, error(valid)=3.21e-01, acc(valid)=8.87e-01, error(test)=3.56e-01, acc(test)=8.76e-01
+UP1: error(valid) at 16 = 3.21e-01 > at 11 = 3.20e-01
+Epoch 17: 800.4s to complete
+    error(train)=2.05e-01, acc(train)=9.19e-01, error(valid)=3.17e-01, acc(valid)=8.90e-01, error(test)=3.57e-01, acc(test)=8.78e-01
+Epoch 18: 797.9s to complete
+    error(train)=2.13e-01, acc(train)=9.13e-01, error(valid)=3.33e-01, acc(valid)=8.83e-01, error(test)=3.70e-01, acc(test)=8.73e-01
+UP1: error(valid) at 18 = 3.33e-01 > at 13 = 3.28e-01
+UP2: error(valid) at 13 = 3.28e-01 > at 8 = 3.28e-01
+Epoch 19: 799.3s to complete
+    error(train)=2.04e-01, acc(train)=9.17e-01, error(valid)=3.26e-01, acc(valid)=8.85e-01, error(test)=3.63e-01, acc(test)=8.77e-01
+UP1: error(valid) at 19 = 3.26e-01 > at 14 = 3.19e-01
+Epoch 20: 799.2s to complete
+    error(train)=1.91e-01, acc(train)=9.23e-01, error(valid)=3.19e-01, acc(valid)=8.89e-01, error(test)=3.56e-01, acc(test)=8.82e-01
+UP1: error(valid) at 20 = 3.19e-01 > at 15 = 3.15e-01
+Epoch 21: 799.8s to complete
+    error(train)=1.87e-01, acc(train)=9.24e-01, error(valid)=3.15e-01, acc(valid)=8.88e-01, error(test)=3.49e-01, acc(test)=8.80e-01
+Epoch 22: 798.6s to complete
+    error(train)=1.81e-01, acc(train)=9.26e-01, error(valid)=3.19e-01, acc(valid)=8.90e-01, error(test)=3.53e-01, acc(test)=8.81e-01
+UP1: error(valid) at 22 = 3.19e-01 > at 17 = 3.17e-01
+Epoch 23: 799.9s to complete
+    error(train)=1.98e-01, acc(train)=9.19e-01, error(valid)=3.37e-01, acc(valid)=8.81e-01, error(test)=3.75e-01, acc(test)=8.74e-01
+UP1: error(valid) at 23 = 3.37e-01 > at 18 = 3.33e-01
+UP2: error(valid) at 18 = 3.33e-01 > at 13 = 3.28e-01
+UP3: error(valid) at 13 = 3.28e-01 > at 8 = 3.28e-01
+EARLY STOPPING
+['inputs', 'targets']
+['inputs', 'targets']
+['inputs', 'targets']
+MultiLayerModel(
+    DropoutLayer(incl_prob=0.8)
+    ReshapeLayer(output_shape=(1, 28, 28))
+    ConvolutionalLayer(
+    num_input_channels=1, num_output_channels=20,
+    input_dim_1=28, input_dim_2=28,
+    kernel_dim_1=5, kernel_dim_2=5
+)
+    MaxPoolLayer(
+    num_input_channels=20,
+    input_dim_1=24, input_dim_2=24,
+    extent=2, stride=2
+)
+    ReluLayer
+    ConvolutionalLayer(
+    num_input_channels=20, num_output_channels=50,
+    input_dim_1=12, input_dim_2=12,
+    kernel_dim_1=5, kernel_dim_2=5
+)
+    MaxPoolLayer(
+    num_input_channels=50,
+    input_dim_1=8, input_dim_2=8,
+    extent=2, stride=2
+)
+    ReshapeLayer(output_shape=(800,))
+    DropoutLayer(incl_prob=0.8)
+    AffineLayerWithoutBias(input_dim=800, output_dim=400)
+    BatchNormalizationLayer(input_dim=400)
+    ReluLayer
+    DropoutLayer(incl_prob=0.8)
+    AffineLayerWithoutBias(input_dim=400, output_dim=400)
+    BatchNormalizationLayer(input_dim=400)
+    ReluLayer
+    AffineLayer(input_dim=400, output_dim=47)
+)
