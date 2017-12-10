@@ -13,14 +13,14 @@ import numpy as np
 
 
 class SumOfSquaredDiffsError(object):
-    """Sum of squared differences (squared Euclidean distance) error."""
+  """Sum of squared differences (squared Euclidean distance) error."""
 
-    def __call__(self, outputs, targets):
-        """Calculates error function given a batch of outputs and targets.
+  def __call__(self, outputs, targets):
+    """Calculates error function given a batch of outputs and targets.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
         Returns:
             Scalar cost function value.
@@ -59,12 +59,12 @@ class BinaryCrossEntropyError(object):
         return -np.mean(
             targets * np.log(outputs) + (1. - targets) * np.log(1. - ouputs))
 
-    def grad(self, outputs, targets):
-        """Calculates gradient of error function with respect to outputs.
+  def grad(self, outputs, targets):
+    """Calculates gradient of error function with respect to outputs.
 
-        Args:
-            outputs: Array of model outputs of shape (batch_size, output_dim).
-            targets: Array of target outputs of shape (batch_size, output_dim).
+    Args:
+        outputs: Array of model outputs of shape (batch_size, output_dim).
+        targets: Array of target outputs of shape (batch_size, output_dim).
 
         Returns:
             Gradient of error function with respect to outputs.
@@ -154,9 +154,9 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Scalar error function value.
         """
-        normOutputs = outputs - outputs.max(-1)[:, None]
-        logProb = normOutputs - np.log(np.sum(np.exp(normOutputs), axis=-1)[:, None])
-        return -np.mean(np.sum(targets * logProb, axis=1))
+        probs = np.exp(outputs)
+        probs /= probs.sum(-1)[:, None]
+        return -np.mean(np.sum(targets * np.log(probs), axis=1))
 
     def grad(self, outputs, targets):
         """Calculates gradient of error function with respect to outputs.
@@ -168,7 +168,7 @@ class CrossEntropySoftmaxError(object):
         Returns:
             Gradient of error function with respect to outputs.
         """
-        probs = np.exp(outputs - outputs.max(-1)[:, None])
+        probs = np.exp(outputs)
         probs /= probs.sum(-1)[:, None]
         return (probs - targets) / outputs.shape[0]
 
